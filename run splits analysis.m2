@@ -12,7 +12,7 @@ logInfo = msg -> (
 	logFile << msg << endl;
 );
 
-load "aaron libraries.m2";
+load "libs.m2";
 load "tori.m2";
 load "eight vertices.m2";
 

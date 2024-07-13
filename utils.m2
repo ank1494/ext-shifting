@@ -47,8 +47,17 @@ isConnected = cplx -> (
 );
 
 isCycle = graph -> (
-	(isConnected graph) and all(getVertices graph, v -> 2 == #select(graph, e -> member(v,e)))
+	(isConnected graph) and all(getVertices graph, v -> 2 == degreeOfVertex(graph, v))
 );
+
+isPinchedDiskBdry = graph -> (
+    (isConnected graph) and
+    all(getVertices graph, v -> member(degreeOfVertex(graph, v), {2,4})) and
+    1 == numberOfVerticesWithDegree(graph, 4)
+);
+
+degreeOfVertex = (graph, v) -> #select(graph, e -> member(v,e));
+numberOfVerticesWithDegree = (graph, deg) -> #select(getVertices graph, v -> (deg == degreeOfVertex(graph, v)));
 
 --returns vertices that make a missing triangle with edge
 findEdgeMissingTriangles = (srfc, edge) -> (
@@ -62,4 +71,10 @@ findEdgeMissingTriangles = (srfc, edge) -> (
 findEdgesWithOneMissingTriangle = srfc -> (
 	edges := getEdges srfc;
 	select(edges, e -> 1 == #(findEdgeMissingTriangles(srfc, e)))
+);
+
+outputListToFile = (l, fName) -> (
+    outf := fName << "{" << l_0 << endl;
+    for i from 1 to #l - 1 do (outf << "," << l_i << endl);
+    outf << "}" << close;
 );
