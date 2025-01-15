@@ -3,6 +3,16 @@ Macaulay2 code for exterior shifting, and analyzing the shiftings of surfaces.
 
 Comments, questions, suggestions, corrections etc. are welcome at aaron.keehn@mail.huj.ac.il
 
+## How to load the libraries
+
+run the command 'load "libs.m2"' in order to use the functions defined in the code
+
+## How to shift a simplicial complex
+
+If you want to shift a complex, you need to shift each dimension separately. For example if the edges if the complex are {1,2},{1,3},{3,4}, then you can run 
+
+'extShiftLex {{1,2},{1,3},{3,4}}'
+
 ## How to run the calculations for the shifting of the edges
 1. In the file 'analysis config.m2', set the name of the analysis you want to run in the 'analysisName' field (this can be anything you want, as long as it is a valid directory name), and set the 'analysisInputFile' field to the path of the initial input file (you can uncomment to use one of the provided input files for analyzing the torus, klein bottle or projective plane).
 2. Open Macaulay2 in the directory of the cloned repository (ext-shifting)
