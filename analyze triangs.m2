@@ -1,7 +1,7 @@
 --init analysis environment
 load "init analysis env.m2";
 
-CALC'FINISHED'STR = "CALCULATION FINISHED, NO MORE SPLITS FOR CALCULATION";
+calcFinishedStr = "CALCULATION FINISHED, NO MORE SPLITS FOR CALCULATION";
 exceptionFile = concatenate(iterationOutputDir, "/Exceptions Log.txt") << "";
 logFile = concatenate(iterationOutputDir, "/Analysis Log.txt") << "";
 summaryFile = concatenate(iterationOutputDir, "/Analysis Summary.txt") << "";
@@ -65,9 +65,9 @@ if #triangulations > 0 then (
     iterationCounter = 1 + iterationCounter;
     nextCalcInputPath = concatenate(inputDirPath, "/input_", toString iterationCounter);
     if 0 == #splitsForNextCalc then (--calculation is done
-        print CALC'FINISHED'STR;
-        summaryFile << CALC'FINISHED'STR << endl;
-        logFile << CALC'FINISHED'STR << endl;
+        print calcFinishedStr;
+        summaryFile << calcFinishedStr << endl;
+        logFile << calcFinishedStr << endl;
         nextCalcInputPath << splitsForNextCalc << close;
     ) else (
         outputListToFile(splitsForNextCalc, nextCalcInputPath);
