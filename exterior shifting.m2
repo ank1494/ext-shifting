@@ -77,3 +77,6 @@ extShiftRevLexN = simplices ->
         revlexOrd := RevLexOrder(v, l);
         exteriorShiftN(simplices, revlexOrd)
     );
+
+-- Returns the final (last in lex order) edge of the exterior shift of a triangulation's edges.
+finalEdgeOfShift = cplx -> (extShiftLex getEdges cplx)_-1;

@@ -7,6 +7,7 @@ load "exterior shifting.m2"
 load "partial.m2"
 load "vertex split.m2"
 --load "analyze splits.m2"
+load "critical regions.m2"
 load "polynomial simpcomp.m2"
 
 -- increment all vertex indices by 1 (converts 0-indexed to 1-indexed)
