@@ -7,7 +7,9 @@ logFile = concatenate(iterationOutputDir, "/Analysis Log.txt") << "";
 summaryFile = concatenate(iterationOutputDir, "/Analysis Summary.txt") << "";
 --exceptionalCplxFile = concatenate(iterationOutputDir, "/exceptions.txt") << "";
 
+printLive concatenate("reading input file: ", inputFilePath);
 triangulations = value get inputFilePath;
+printLive concatenate("loaded ", toString #triangulations, " triangulations");
 
 saveSplitToAnalyze = cplx -> ();
 
@@ -21,7 +23,9 @@ logInfo = msg -> (
 	logFile << msg << endl;
 );
 
+printLive "loading libraries...";
 load "libs.m2";
+printLive "libraries loaded";
 
 splitsForNextCalc = {};
 largestNonPrefixTriangulation = 0;
