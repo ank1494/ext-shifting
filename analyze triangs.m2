@@ -29,9 +29,9 @@ foundCritRegions = set {getCritRegionString("disk",3,0)};
 
 if #triangulations > 0 then (
     --todo: limit size of calculation, and output leftovers along with calculated splits
-    print concatenate("begin calculation, ", toString(#triangulations), " triangulations to analyze");
+    printLive concatenate("begin calculation, ", toString(#triangulations), " triangulations to analyze");
     for trIdx from 0 to #triangulations - 1 do (
-        print concatenate("analyzing ", toString (trIdx + 1), " of ", toString(#triangulations));
+        printLive concatenate("analyzing ", toString (trIdx + 1), " of ", toString(#triangulations));
 	    logFile << "analyzing complex: " << toString triangulations_trIdx << endl;
         finalE = finalEdgeOfShift triangulations_trIdx;
         logInfo concatenate("final edge of shift: ", toString finalE);
@@ -55,9 +55,9 @@ if #triangulations > 0 then (
     --output summary
     critRegionsSummary = concatenate("the following critical regions were found: ", toString toList foundCritRegions);
     cplxSizeSummary = concatenate("largest triangulation with shifting not a prefix had ", toString largestNonPrefixTriangulation, " vertices");
-    print "iteration done, summary:";
-    print critRegionsSummary;
-    print cplxSizeSummary;
+    printLive "iteration done, summary:";
+    printLive critRegionsSummary;
+    printLive cplxSizeSummary;
     summaryFile << critRegionsSummary << endl;
     summaryFile << cplxSizeSummary << endl;
 
@@ -65,7 +65,7 @@ if #triangulations > 0 then (
     iterationCounter = 1 + iterationCounter;
     nextCalcInputPath = concatenate(inputDirPath, "/input_", toString iterationCounter);
     if 0 == #splitsForNextCalc then (--calculation is done
-        print calcFinishedStr;
+        printLive calcFinishedStr;
         summaryFile << calcFinishedStr << endl;
         logFile << calcFinishedStr << endl;
         nextCalcInputPath << splitsForNextCalc << close;
@@ -74,7 +74,7 @@ if #triangulations > 0 then (
     );
     iterationCounterPath << iterationCounter << close;
 ) else (
-    print "no more splits to calculate";
+    printLive "no more splits to calculate";
 );
 exceptionFile << close;
 logFile << close;
