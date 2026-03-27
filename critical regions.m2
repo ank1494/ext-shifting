@@ -44,7 +44,7 @@ getCritRegions = (complex, finalEdge) -> (
     for i from 0 to #splits - 1 do (
         shift1 := extShiftLex getEdges splits_i_0;
         shift2 := extShiftLex getEdges splits_i_0;
-        data := {splits_i_1, (finalEdge == shift1_-1) and (finalEdge == shift2_-1), splits_i_0};
+        data := {splits_i_1, (finalEdge == shift1_-1) and (finalEdge == shift2_-1), (not member(4, shift1_-1)) and (not member(4, shift2_-1)), splits_i_0};
         splitsWithShiftData = append(splitsWithShiftData, data);
     );
 
@@ -151,8 +151,8 @@ getCritRegions = (complex, finalEdge) -> (
             logException(complex, concatenate("bad splits outside critical regions: ",
                 toString (badSplits / (s -> concatenate("base: ", toString s_0_SPLITBASE,
                     ", neighbors: ", toString s_0_SPLITNEIGHBORS)))));
-            splitsToReturn = join(splitsToReturn, badSplits / (s -> s_2));
         );
+        splitsToReturn = join(splitsToReturn, (select(remainingSplits, s -> s_2)) / (s -> s_3));
     );
 
     {critRegionStrings, splitsToReturn}
