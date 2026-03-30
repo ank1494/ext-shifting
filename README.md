@@ -54,8 +54,6 @@ All functions below are available after `load "libs.m2"`.
 |---|---|
 | `extShiftLex simplices` | Exterior shift of a simplex list under the lex order (randomized matrix, fast) |
 | `extShiftRevLex simplices` | Exterior shift under the reverse-lex order |
-| `extShiftLexN simplices` | Same as `extShiftLex` but uses a generic matrix over `frac QQ` (exact, slow) |
-| `extShiftRevLexN simplices` | Same as `extShiftRevLex` but exact |
 | `finalEdgeOfShift cplx` | The final (lex-largest) edge of the exterior shift of `cplx`'s 1-skeleton |
 
 `simplices` is a list of same-dimension faces, e.g. `{{1,2},{1,3},{2,3}}`. Vertices must be non-negative integers.
