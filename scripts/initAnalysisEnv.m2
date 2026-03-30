@@ -1,4 +1,4 @@
-load "analysis config.m2";
+load (scriptCommandLine)_0;
 printLive = msg -> (stdio << msg << endl);
 ANALYSIS'OUTPUT'FOLDER = "analysis output";
 INPUT'FOLDER'NAME = ".INPUT_FOLDER_DO_NOT_TOUCH";
