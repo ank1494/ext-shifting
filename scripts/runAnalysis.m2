@@ -30,9 +30,7 @@ printLive concatenate("loaded ", toString(#triangulations), " triangulations");
 
 printLive "loading libraries...";
 libsLoaded := false;
-stderr << "debug: fileExists libs.m2 = " << fileExists "libs.m2" << endl;
 try (load "libs.m2"; libsLoaded = true);
-stderr << "debug: libsLoaded = " << libsLoaded << endl;
 if not libsLoaded then (stderr << "error: failed to load libs.m2" << endl; exit 2);
 printLive "libraries loaded";
 
