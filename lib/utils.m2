@@ -72,9 +72,3 @@ findEdgesWithOneMissingTriangle = srfc -> (
 	edges := getEdges srfc;
 	select(edges, e -> 1 == #(findEdgeMissingTriangles(srfc, e)))
 );
-
-outputListToFile = (l, fName) -> (
-    outf := fName << "{" << l_0 << endl;
-    for i from 1 to #l - 1 do (outf << "," << l_i << endl);
-    outf << "}" << close;
-);
