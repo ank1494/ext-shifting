@@ -1,5 +1,7 @@
 --init analysis environment
-load "scripts/initAnalysisEnv.m2";
+envLoaded := false;
+try (load "scripts/initAnalysisEnv.m2"; envLoaded = true);
+if not envLoaded then (stderr << "error: failed to initialize analysis environment" << endl; exit 2);
 
 outputListToFile = (l, fName) -> (
     outf := fName << "{" << l_0 << endl;
@@ -11,12 +13,27 @@ exceptionFile = concatenate(iterationOutputDir, "/Exceptions Log.txt") << "";
 logFile = concatenate(iterationOutputDir, "/Analysis Log.txt") << "";
 summaryFile = concatenate(iterationOutputDir, "/Analysis Summary.txt") << "";
 
+logException = (cplx, msg) -> (
+    logFile << "exception found" << endl;
+    exceptionFile << "complex: " << toString cplx << endl << "reason: " << msg << endl << endl;
+);
+logInfo = msg -> (
+    logFile << msg << endl;
+);
+
 printLive concatenate("reading input file: ", inputFilePath);
-triangulations = value get inputFilePath;
-printLive concatenate("loaded ", toString #triangulations, " triangulations");
+triangulations := {};
+inputLoaded := false;
+try (triangulations = value get inputFilePath; inputLoaded = true);
+if not inputLoaded then (stderr << "error: failed to read input file: " << inputFilePath << endl; exit 2);
+printLive concatenate("loaded ", toString(#triangulations), " triangulations");
 
 printLive "loading libraries...";
-load "libs.m2";
+libsLoaded := false;
+stderr << "debug: fileExists libs.m2 = " << fileExists "libs.m2" << endl;
+try (load "libs.m2"; libsLoaded = true);
+stderr << "debug: libsLoaded = " << libsLoaded << endl;
+if not libsLoaded then (stderr << "error: failed to load libs.m2" << endl; exit 2);
 printLive "libraries loaded";
 
 if #triangulations > 0 then (
