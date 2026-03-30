@@ -1,4 +1,4 @@
-load "analysis config.m2";
+load (scriptCommandLine)_1;
 printLive = msg -> (stdio << msg << endl);
 ANALYSIS'OUTPUT'FOLDER = "analysis output";
 INPUT'FOLDER'NAME = ".INPUT_FOLDER_DO_NOT_TOUCH";
@@ -38,5 +38,5 @@ if needsInputInit then (
 );
 
 iterationOutputDir = concatenate(outputDirPath, "/", "iteration_", toString(iterationCounter + 1));
-mkdir iterationOutputDir;
+try mkdir iterationOutputDir;
 

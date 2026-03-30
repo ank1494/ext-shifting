@@ -1,5 +1,3 @@
-needs "utils.m2";
-
 getSimpComp = facets -> (
 	R = QQ[(reverse getVertices facets) / (i -> x_i)];
 	simplicialComplex ((facets) / (f -> facetToMonomial f))

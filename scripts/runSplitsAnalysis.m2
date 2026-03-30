@@ -13,8 +13,8 @@ logInfo = msg -> (
 );
 
 load "libs.m2";
-load "tori.m2";
-load "eight vertices.m2";
+load "data/tori.m2";
+load "data/eightVertices.m2";
 
 maxCriticalPolygon = 0;
 
