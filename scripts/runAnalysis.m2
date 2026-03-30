@@ -7,7 +7,6 @@ outputListToFile = (l, fName) -> (
     outf << "}" << close;
 );
 
-calcFinishedStr = "CALCULATION FINISHED, NO MORE SPLITS FOR CALCULATION";
 exceptionFile = concatenate(iterationOutputDir, "/Exceptions Log.txt") << "";
 logFile = concatenate(iterationOutputDir, "/Analysis Log.txt") << "";
 summaryFile = concatenate(iterationOutputDir, "/Analysis Summary.txt") << "";
@@ -38,18 +37,29 @@ if #triangulations > 0 then (
     --output splits for next calculation, and update iteration counter
     iterationCounter = 1 + iterationCounter;
     nextCalcInputPath = concatenate(inputDirPath, "/input_", toString iterationCounter);
-    if 0 == #splitsForNextCalc then (--calculation is done
-        printLive calcFinishedStr;
-        summaryFile << calcFinishedStr << endl;
-        logFile << calcFinishedStr << endl;
+    if 0 == #splitsForNextCalc then (
+        --converged: no more splits
+        summaryFile << "converged" << endl;
+        logFile << "converged" << endl;
         nextCalcInputPath << splitsForNextCalc << close;
+        exceptionFile << close;
+        logFile << close;
+        summaryFile << close;
+        iterationCounterPath << iterationCounter << close;
+        exit 0;
     ) else (
+        --more iterations needed
         outputListToFile(splitsForNextCalc, nextCalcInputPath);
+        iterationCounterPath << iterationCounter << close;
+        exceptionFile << close;
+        logFile << close;
+        summaryFile << close;
+        exit 1;
     );
-    iterationCounterPath << iterationCounter << close;
 ) else (
-    printLive "no more splits to calculate";
+    --no triangulations to process: converged
+    exceptionFile << close;
+    logFile << close;
+    summaryFile << close;
+    exit 0;
 );
-exceptionFile << close;
-logFile << close;
-summaryFile << close;
