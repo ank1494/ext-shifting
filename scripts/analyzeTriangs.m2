@@ -1,5 +1,5 @@
 --init analysis environment
-load "init analysis env.m2";
+load "scripts/initAnalysisEnv.m2";
 
 calcFinishedStr = "CALCULATION FINISHED, NO MORE SPLITS FOR CALCULATION";
 exceptionFile = concatenate(iterationOutputDir, "/Exceptions Log.txt") << "";
