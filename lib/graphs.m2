@@ -14,6 +14,7 @@ doc ///
     construct the complete bipartite graph K_{m,n}
   Usage
     completeBipartite(m, n)
-  Example
-    completeBipartite(2, 3)
+  Description
+    Example
+      completeBipartite(2, 3)
 ///

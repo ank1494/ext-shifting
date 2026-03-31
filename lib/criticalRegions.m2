@@ -13,8 +13,9 @@ doc ///
     typed return value of getCritRegions
   Usage
     result = getCritRegions(complex, finalEdge); result.critRegionStrings; result.nextComplexes
-  Example
-    getCritRegions({{1,2,3},{1,3,4},{1,4,2},{2,3,4}}, {1,2})
+  Description
+    Example
+      getCritRegions({{1,2,3},{1,3,4},{1,4,2},{2,3,4}}, {1,2})
 ///
 
 -- Returns a canonical string identifier for a critical region of the form "type,boundary,inner".
@@ -30,8 +31,9 @@ doc ///
     produce a canonical string identifier for a critical region
   Usage
     getCritRegionString(regionType, boundarySize, innerSize)
-  Example
-    getCritRegionString("disk", 3, 0)
+  Description
+    Example
+      getCritRegionString("disk", 3, 0)
 ///
 
 -- Returns true if both neighbors lie on the same side of critEdge in the triangle fan around bdyVertex.
@@ -70,8 +72,9 @@ doc ///
     test whether two neighbors lie on the same side of an edge in a surface with boundary
   Usage
     isSameSideSplit(surface, bdyVertex, neighbors, critEdge)
-  Example
-    isSameSideSplit({{0,1,2},{0,2,3},{0,3,4}}, 0, {1,3}, {0,2})
+  Description
+    Example
+      isSameSideSplit({{0,1,2},{0,2,3},{0,3,4}}, 0, {1,3}, {0,2})
 ///
 
 -- Analyzes the critical regions of a complex with respect to a final shift edge.
@@ -219,6 +222,7 @@ doc ///
     identify critical regions of a triangulated surface relative to its final shift edge
   Usage
     getCritRegions(complex, finalEdge)
-  Example
-    getCritRegions({{1,2,3},{1,3,4},{1,4,5},{1,5,2},{2,3,4},{2,4,5}}, {1,2})
+  Description
+    Example
+      getCritRegions({{1,2,3},{1,3,4},{1,4,5},{1,5,2},{2,3,4},{2,4,5}}, {1,2})
 ///

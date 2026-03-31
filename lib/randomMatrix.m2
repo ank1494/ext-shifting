@@ -17,6 +17,7 @@ doc ///
     generate a random matrix whose k-th exterior power is non-singular
   Usage
     randomMatrix(n, k)
-  Example
-    randomMatrix(4, 2)
+  Description
+    Example
+      randomMatrix(4, 2)
 ///

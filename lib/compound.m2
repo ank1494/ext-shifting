@@ -8,8 +8,9 @@ doc ///
     test whether all elements of a list have the same length
   Usage
     allEqLengths lst
-  Example
-    allEqLengths {{0,1},{1,2},{2,3}}
+  Description
+    Example
+      allEqLengths {{0,1},{1,2},{2,3}}
 ///
 
 -- The (rows, cols)-minor of M: determinant of the submatrix with row indices rows and column indices cols.
@@ -37,6 +38,7 @@ doc ///
     compute the compound (exterior power) matrix
   Usage
     compound(M, rows, cols)
-  Example
-    compound(random(QQ^4,QQ^4), {{0,1},{2,3}}, {{0,1},{0,2},{1,2},{0,3},{1,3},{2,3}})
+  Description
+    Example
+      compound(random(QQ^4,QQ^4), {{0,1},{2,3}}, {{0,1},{0,2},{1,2},{0,3},{1,3},{2,3}})
 ///

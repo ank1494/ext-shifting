@@ -12,8 +12,9 @@ doc ///
     typed record for the geometry of a non-trivial vertex split
   Usage
     new VertexSplitData from { base => v, neighbors => {a,b}, ratio => {p,q} }
-  Example
-    new VertexSplitData from { base => 0, neighbors => {1,3}, ratio => {2,4} }
+  Description
+    Example
+      new VertexSplitData from { base => 0, neighbors => {1,3}, ratio => {2,4} }
 ///
 
 -- Enumerates all vertex splits of vertex 0 in a closed surface (including trivial splits).
@@ -59,8 +60,9 @@ doc ///
     enumerate all vertex splits of vertex 0 in a closed triangulated surface
   Usage
     allSplitsAtVertex0 cplx
-  Example
-    allSplitsAtVertex0 {{0,1,2},{0,2,3},{0,3,4},{0,4,1},{1,2,3},{1,3,4}}
+  Description
+    Example
+      allSplitsAtVertex0 {{0,1,2},{0,2,3},{0,3,4},{0,4,1},{1,2,3},{1,3,4}}
 ///
 
 -- Non-trivial vertex splits only: splits where each arc of the link of 0 has at least 2 triangles.
@@ -120,8 +122,9 @@ doc ///
     enumerate non-trivial vertex splits of vertex 0 in a closed triangulated surface
   Usage
     nonTrivialSplitsAtVertex0 cplx
-  Example
-    nonTrivialSplitsAtVertex0 {{0,1,2},{0,2,3},{0,3,4},{0,4,5},{0,5,1},{1,2,3},{1,3,4},{1,4,5}}
+  Description
+    Example
+      nonTrivialSplitsAtVertex0 {{0,1,2},{0,2,3},{0,3,4},{0,4,5},{0,5,1},{1,2,3},{1,3,4},{1,4,5}}
 ///
 
 -- Enumerates all non-trivial vertex splits at every vertex of complex by swapping each vertex
@@ -156,8 +159,9 @@ doc ///
     enumerate all non-trivial vertex splits across all vertices of a triangulated surface
   Usage
     nonTrivialVertexSplits complex
-  Example
-    nonTrivialVertexSplits {{1,2,3},{1,3,4},{1,4,5},{1,5,6},{1,6,2},{2,3,4},{2,4,5},{2,5,6}}
+  Description
+    Example
+      nonTrivialVertexSplits {{1,2,3},{1,3,4},{1,4,5},{1,5,6},{1,6,2},{2,3,4},{2,4,5},{2,5,6}}
 ///
 
 -- Replaces each triangle with three new triangles by inserting a new vertex at its center.
@@ -180,8 +184,9 @@ doc ///
     enumerate all single-triangle stellar subdivisions of a triangulated complex
   Usage
     triangleSplits cplx
-  Example
-    triangleSplits {{0,1,2},{1,2,3}}
+  Description
+    Example
+      triangleSplits {{0,1,2},{1,2,3}}
 ///
 
 -- Performs a simultaneous stellar subdivision of every triangle, introducing one new vertex per triangle.
@@ -201,8 +206,9 @@ doc ///
     perform a simultaneous stellar subdivision of all triangles
   Usage
     splitAllTriangles cplx
-  Example
-    splitAllTriangles {{0,1,2},{1,2,3}}
+  Description
+    Example
+      splitAllTriangles {{0,1,2},{1,2,3}}
 ///
 
 -- An edge is contractible if contracting it reduces the edge count by exactly 3
@@ -219,8 +225,9 @@ doc ///
     find all contractible edges in a triangulated surface
   Usage
     contractibles surface
-  Example
-    contractibles {{0,1,2},{0,2,3},{0,3,1},{1,2,3}}
+  Description
+    Example
+      contractibles {{0,1,2},{0,2,3},{0,3,1},{1,2,3}}
 ///
 
 -- Contracts edge by merging its second endpoint into its first throughout the complex,
@@ -240,6 +247,7 @@ doc ///
     contract an edge in a simplicial complex
   Usage
     contractCplx(cplx, edge)
-  Example
-    contractCplx({{0,1,2},{0,2,3}}, {0,1})
+  Description
+    Example
+      contractCplx({{0,1,2},{0,2,3}}, {0,1})
 ///

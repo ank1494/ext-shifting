@@ -12,8 +12,9 @@ doc ///
     convert a list of facets to a Macaulay2 SimplicialComplex
   Usage
     getSimpComp facets
-  Example
-    getSimpComp {{1,2,3},{1,3,4}}
+  Description
+    Example
+      getSimpComp {{1,2,3},{1,3,4}}
 ///
 
 -- Converts a single facet (vertex index list) to the corresponding squarefree monomial in R.
@@ -31,6 +32,7 @@ doc ///
     convert a facet to its squarefree monomial in the current ring R
   Usage
     facetToMonomial facet
-  Example
-    getSimpComp {{1,2,3}}; facetToMonomial {1,2,3}
+  Description
+    Example
+      getSimpComp {{1,2,3}}; facetToMonomial {1,2,3}
 ///

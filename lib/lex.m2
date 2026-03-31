@@ -18,8 +18,9 @@ doc ///
     generate all simplices of a given dimension in lexicographic order
   Usage
     LexOrder(vertexBound, simplexDim)
-  Example
-    LexOrder(4, 2)
+  Description
+    Example
+      LexOrder(4, 2)
 ///
 
 doc ///
@@ -29,6 +30,7 @@ doc ///
     generate all simplices of a given dimension in reverse-lexicographic order
   Usage
     RevLexOrder(vertexBound, simplexDim)
-  Example
-    RevLexOrder(4, 2)
+  Description
+    Example
+      RevLexOrder(4, 2)
 ///

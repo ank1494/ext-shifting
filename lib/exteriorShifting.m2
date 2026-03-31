@@ -36,8 +36,9 @@ doc ///
     compute the exterior shift of a simplicial complex under a given total order
   Usage
     exteriorShift(simplices, fullOrder)
-  Example
-    exteriorShift({{0,1},{0,2},{1,2}}, LexOrder(3,2))
+  Description
+    Example
+      exteriorShift({{0,1},{0,2},{1,2}}, LexOrder(3,2))
 ///
 
 -- Exterior shift under the lex order on {0,...,v-1}.
@@ -58,8 +59,9 @@ doc ///
     compute the exterior shift of a simplicial complex under the lex order
   Usage
     extShiftLex simplices
-  Example
-    extShiftLex {{1,2},{1,3},{2,3}}
+  Description
+    Example
+      extShiftLex {{1,2},{1,3},{2,3}}
 ///
 
 -- Exterior shift under the reverse-lex order on {0,...,v-1}.
@@ -80,8 +82,9 @@ doc ///
     compute the exterior shift of a simplicial complex under the reverse-lex order
   Usage
     extShiftRevLex simplices
-  Example
-    extShiftRevLex {{1,2},{1,3},{2,3}}
+  Description
+    Example
+      extShiftRevLex {{1,2},{1,3},{2,3}}
 ///
 
 -- Symbolic (non-random) variant: uses a generic matrix over a fraction field so the result is
@@ -112,8 +115,9 @@ doc ///
     compute the exterior shift symbolically using a generic matrix
   Usage
     exteriorShiftN(simplices, fullOrder)
-  Example
-    exteriorShiftN({{0,1},{0,2},{1,2}}, LexOrder(3,2))
+  Description
+    Example
+      exteriorShiftN({{0,1},{0,2},{1,2}}, LexOrder(3,2))
 ///
 
 -- Symbolic lex shift (see exteriorShiftN).
@@ -133,8 +137,9 @@ doc ///
     compute the exterior shift under the lex order using a generic matrix
   Usage
     extShiftLexN simplices
-  Example
-    extShiftLexN {{1,2},{1,3},{2,3}}
+  Description
+    Example
+      extShiftLexN {{1,2},{1,3},{2,3}}
 ///
 
 -- Symbolic reverse-lex shift (see exteriorShiftN).
@@ -154,8 +159,9 @@ doc ///
     compute the exterior shift under the reverse-lex order using a generic matrix
   Usage
     extShiftRevLexN simplices
-  Example
-    extShiftRevLexN {{1,2},{1,3},{2,3}}
+  Description
+    Example
+      extShiftRevLexN {{1,2},{1,3},{2,3}}
 ///
 
 -- Returns the final (last in lex order) edge of the exterior shift of a triangulation's edges.
@@ -169,6 +175,7 @@ doc ///
     return the last edge (in lex order) of the exterior shift of a triangulation
   Usage
     finalEdgeOfShift cplx
-  Example
-    finalEdgeOfShift {{1,2,3},{1,3,4},{1,2,4},{2,3,4}}
+  Description
+    Example
+      finalEdgeOfShift {{1,2,3},{1,3,4},{1,2,4},{2,3,4}}
 ///

@@ -33,6 +33,7 @@ doc ///
     run one iteration of the shifting analysis over a list of triangulations
   Usage
     analyzeIteration triangulations
-  Example
-    analyzeIteration { {{1,2,3},{1,3,4},{1,4,2},{2,3,4}} }
+  Description
+    Example
+      analyzeIteration { {{1,2,3},{1,3,4},{1,4,2},{2,3,4}} }
 ///

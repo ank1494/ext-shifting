@@ -19,8 +19,9 @@ doc ///
     test whether one simplex is below another in the componentwise partial order
   Usage
     isPartialLeq(a, b)
-  Example
-    isPartialLeq({0,1}, {0,2})
+  Description
+    Example
+      isPartialLeq({0,1}, {0,2})
 ///
 
 -- Returns the indices in fullord of all elements strictly below el in the partial order
@@ -41,8 +42,9 @@ doc ///
     find indices of elements strictly below a simplex in the componentwise partial order
   Usage
     elementsPartialLessThan(el, fullord)
-  Example
-    elementsPartialLessThan({0,2}, LexOrder(4,2))
+  Description
+    Example
+      elementsPartialLessThan({0,2}, LexOrder(4,2))
 ///
 
 -- Computes an unnammed partial exterior shift using the componentwise partial order on simplices.
@@ -72,6 +74,7 @@ doc ///
     compute the partial exterior shift using the componentwise partial order
   Usage
     partialShift simplices
-  Example
-    partialShift {{1,2},{1,3},{2,3}}
+  Description
+    Example
+      partialShift {{1,2},{1,3},{2,3}}
 ///
