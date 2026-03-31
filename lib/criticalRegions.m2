@@ -84,20 +84,21 @@ doc ///
 -- is treated as an error condition. Vertex splits outside critical regions whose final edge is
 -- non-prefix (no vertex 4) are passed to the next iteration via nextComplexes.
 -- Returns a CritRegionsResult.
-getCritRegions = (complex, finalEdge) -> (
-    critRegionStrings := set {};
-    nextComplexes := {};
+getCritRegions = (srfc, finalEdge) -> (
+    -- Use distinct accumulator names to avoid shadowing the HashTable key symbols.
+    critRegStrs := set {};
+    nextCplxes := {};
 
     -- Compute non-trivial vertex splits and annotate each with shift data.
-    rawSplits := nonTrivialVertexSplits complex;
+    rawSplits := nonTrivialVertexSplits srfc;
     splits := {};
     for i from 0 to #rawSplits - 1 do (
         splitComplex := rawSplits_i_0;
-        splitData := rawSplits_i_1;
+        vSplitData := rawSplits_i_1;
         shift1 := extShiftLex getEdges splitComplex;
         shift2 := extShiftLex getEdges splitComplex;
         splits = append(splits, new ShiftAnnotatedSplit from {
-            splitData => splitData,
+            splitData => vSplitData,
             preservesFinalEdge => (finalEdge == shift1_-1) and (finalEdge == shift2_-1),
             noVertex4 => (not member(4, shift1_-1)) and (not member(4, shift2_-1)),
             complex => splitComplex
@@ -106,7 +107,7 @@ getCritRegions = (complex, finalEdge) -> (
 
     -- Identify critical vertices: those where every non-trivial vertex split preserves the final edge.
     remainingSplits := set splits;
-    vertices := getVertices complex;
+    vertices := getVertices srfc;
     critVertices := set {};
     for i from 0 to #vertices - 1 do (
         vertex := vertices_i;
@@ -120,7 +121,7 @@ getCritRegions = (complex, finalEdge) -> (
 
     if #critVertices == #vertices then (
         print "uh oh - all vertices are critical!";
-        logException(complex, "all vertices are critical")
+        logException(srfc, "all vertices are critical")
     ) else (
         remainingCritVertices := critVertices;
         regionsCount := 0;
@@ -134,7 +135,7 @@ getCritRegions = (complex, finalEdge) -> (
                 currentV := (toList unprocessedVsForRegion)_0;
                 unprocessedVsForRegion = unprocessedVsForRegion - (set {currentV});
                 inners = inners + set {currentV};
-                trianglesWithCurrentV := select(complex, t -> member(currentV, t));
+                trianglesWithCurrentV := select(srfc, t -> member(currentV, t));
                 regionTriangles = regionTriangles + set trianglesWithCurrentV;
                 neighbors := (set flatten trianglesWithCurrentV) - inners;
                 critNeighbors := neighbors * remainingCritVertices;
@@ -152,7 +153,7 @@ getCritRegions = (complex, finalEdge) -> (
 
             eulerChar := eulerCharSrfc regionTriangles;
             regionType := if eulerChar == 1 then "disk" else "mobius";
-            critRegionStrings = critRegionStrings + set {getCritRegionString(regionType, #boundary, #inners)};
+            critRegStrs = critRegStrs + set {getCritRegionString(regionType, #boundary, #inners)};
 
             logInfo(concatenate("critical region- inner vertices: ", toString inners,
                 ", boundary: ", toString boundaryEdges,
@@ -163,20 +164,20 @@ getCritRegions = (complex, finalEdge) -> (
 
             if not isConnected boundaryEdges then (
                 print "uh oh! region boundary is not connected";
-                logException(complex, concatenate("critical region boundary is not connected, ", regionDetailStr));
+                logException(srfc, concatenate("critical region boundary is not connected, ", regionDetailStr));
             ) else if not isCycle boundaryEdges then (
                 print "uh oh! region boundary is not a cycle";
-                logException(complex, concatenate("critical region boundary is not a cycle, ", regionDetailStr));
+                logException(srfc, concatenate("critical region boundary is not a cycle, ", regionDetailStr));
             );
 
             if 1 != eulerChar and 0 != eulerChar then (
                 print "uh oh! region is not a disk or a mobius strip!";
-                logException(complex, concatenate("critical region is not a disk or mobius strip, ", regionDetailStr));
+                logException(srfc, concatenate("critical region is not a disk or mobius strip, ", regionDetailStr));
             );
 
             if (4 * #inners < #innerEdges) then (
                 print "uh oh! few inner edges";
-                logException(complex, concatenate("critical region has few inner edges, ", regionDetailStr));
+                logException(srfc, concatenate("critical region has few inner edges, ", regionDetailStr));
             );
 
             -- Remove vertex splits that belong to this critical region.
@@ -205,14 +206,14 @@ getCritRegions = (complex, finalEdge) -> (
         badSplits := select(remainingSplits, split -> split.preservesFinalEdge);
         if #badSplits > 0 then (
             print "uh oh! bad split outside critical regions";
-            logException(complex, concatenate("bad splits outside critical regions: ",
+            logException(srfc, concatenate("bad splits outside critical regions: ",
                 toString (badSplits / (split -> concatenate("base: ", toString split.splitData.base,
                     ", neighbors: ", toString split.splitData.neighbors)))));
         );
-        nextComplexes = join(nextComplexes, (select(remainingSplits, split -> split.noVertex4)) / (split -> split.complex));
+        nextCplxes = join(nextCplxes, (select(remainingSplits, split -> split.noVertex4)) / (split -> split.complex));
     );
 
-    new CritRegionsResult from { critRegionStrings => critRegionStrings, nextComplexes => nextComplexes }
+    new CritRegionsResult from { critRegionStrings => critRegStrs, nextComplexes => nextCplxes }
 );
 
 doc ///
