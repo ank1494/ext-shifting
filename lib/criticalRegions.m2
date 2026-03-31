@@ -1,12 +1,43 @@
--- Returns a canonical string identifier for a critical region.
+-- Internal typed record annotating a vertex split with shift analysis data.
+-- Fields: splitData (VertexSplitData), preservesFinalEdge (bool), noVertex4 (bool), complex (list of faces).
+ShiftAnnotatedSplit = new Type of HashTable
+
+-- Typed return value of getCritRegions.
+-- Fields: critRegionStrings (set of canonical region strings), nextComplexes (list of complexes for next iteration).
+CritRegionsResult = new Type of HashTable
+
+doc ///
+  Key
+    CritRegionsResult
+  Headline
+    typed return value of getCritRegions
+  Usage
+    result = getCritRegions(complex, finalEdge); result.critRegionStrings; result.nextComplexes
+  Example
+    getCritRegions({{1,2,3},{1,3,4},{1,4,2},{2,3,4}}, {1,2})
+///
+
+-- Returns a canonical string identifier for a critical region of the form "type,boundary,inner".
 -- regionType: "disk" (eulerChar=1) or "mobius" (eulerChar=0)
--- boundarySize: number of boundary vertices
--- innerSize: number of inner vertices
+-- boundarySize: number of boundary vertices; innerSize: number of inner vertices.
 getCritRegionString = (regionType, boundarySize, innerSize) ->
     concatenate(regionType, ",", toString boundarySize, ",", toString innerSize);
 
--- Helper: returns true if both neighbors are on the same side of critEdge
--- relative to bdyVertex in the given surface with boundary.
+doc ///
+  Key
+    getCritRegionString
+  Headline
+    produce a canonical string identifier for a critical region
+  Usage
+    getCritRegionString(regionType, boundarySize, innerSize)
+  Example
+    getCritRegionString("disk", 3, 0)
+///
+
+-- Returns true if both neighbors lie on the same side of critEdge in the triangle fan around bdyVertex.
+-- Traverses the fan starting from a triangle containing critEdge, toggling a boolean each time
+-- the traversal crosses one of the two neighbors. Returns true if the boolean ends unchanged (same side).
+-- Short-circuits to true if a neighbor coincides with critEdge or if the three points form a triangle.
 isSameSideSplit = (surface, bdyVertex, neighbors, critEdge) -> (
     if #((set critEdge) * (set neighbors)) > 0 or member(sort append(neighbors, bdyVertex), surface) then true
     else (
@@ -32,31 +63,53 @@ isSameSideSplit = (surface, bdyVertex, neighbors, critEdge) -> (
     )
 );
 
+doc ///
+  Key
+    isSameSideSplit
+  Headline
+    test whether two neighbors lie on the same side of an edge in a surface with boundary
+  Usage
+    isSameSideSplit(surface, bdyVertex, neighbors, critEdge)
+  Example
+    isSameSideSplit({{0,1,2},{0,2,3},{0,3,4}}, 0, {1,3}, {0,2})
+///
+
 -- Analyzes the critical regions of a complex with respect to a final shift edge.
--- Returns {set of critical region strings, list of vertex-split complexes for next iteration}.
+-- A vertex is critical if every non-trivial vertex split at it preserves the final edge of the shift.
+-- Critical vertices are grouped into connected regions; each region is classified as disk (Euler
+-- characteristic 1) or Möbius strip (Euler characteristic 0) by eulerCharSrfc. A non-cycle boundary
+-- is treated as an error condition. Vertex splits outside critical regions whose final edge is
+-- non-prefix (no vertex 4) are passed to the next iteration via nextComplexes.
+-- Returns a CritRegionsResult.
 getCritRegions = (complex, finalEdge) -> (
     critRegionStrings := set {};
-    splitsToReturn := {};
+    nextComplexes := {};
 
     -- Compute non-trivial vertex splits and annotate each with shift data.
-    splits := nonTrivSplits complex;
-    splitsWithShiftData := {};
-    for i from 0 to #splits - 1 do (
-        shift1 := extShiftLex getEdges splits_i_0;
-        shift2 := extShiftLex getEdges splits_i_0;
-        data := {splits_i_1, (finalEdge == shift1_-1) and (finalEdge == shift2_-1), (not member(4, shift1_-1)) and (not member(4, shift2_-1)), splits_i_0};
-        splitsWithShiftData = append(splitsWithShiftData, data);
+    rawSplits := nonTrivialVertexSplits complex;
+    splits := {};
+    for i from 0 to #rawSplits - 1 do (
+        splitComplex := rawSplits_i_0;
+        splitData := rawSplits_i_1;
+        shift1 := extShiftLex getEdges splitComplex;
+        shift2 := extShiftLex getEdges splitComplex;
+        splits = append(splits, new ShiftAnnotatedSplit from {
+            splitData => splitData,
+            preservesFinalEdge => (finalEdge == shift1_-1) and (finalEdge == shift2_-1),
+            noVertex4 => (not member(4, shift1_-1)) and (not member(4, shift2_-1)),
+            complex => splitComplex
+        });
     );
 
-    -- Identify critical vertices: those where every non-trivial split preserves the final edge.
-    remainingSplits := set splitsWithShiftData;
+    -- Identify critical vertices: those where every non-trivial vertex split preserves the final edge.
+    remainingSplits := set splits;
     vertices := getVertices complex;
     critVertices := set {};
     for i from 0 to #vertices - 1 do (
-        v := vertices_i;
-        splitsFromV := select(splitsWithShiftData, d -> d_0_SPLITBASE == v);
-        if all(splitsFromV, s -> s_1) then (
-            critVertices = critVertices + set {v};
+        vertex := vertices_i;
+        splitsFromV := select(splits, split -> split.splitData.base == vertex);
+        if all(splitsFromV, split -> split.preservesFinalEdge) then (
+            critVertices = critVertices + set {vertex};
             remainingSplits = remainingSplits - (set splitsFromV);
         );
     );
@@ -69,7 +122,7 @@ getCritRegions = (complex, finalEdge) -> (
         remainingCritVertices := critVertices;
         regionsCount := 0;
         while 0 < #remainingCritVertices do (
-            -- Grow a connected region of critical vertices.
+            -- Grow a connected region of critical vertices using BFS.
             unprocessedVsForRegion := set {(toList remainingCritVertices)_0};
             remainingCritVertices = remainingCritVertices - unprocessedVsForRegion;
             regionTriangles := set {};
@@ -90,7 +143,8 @@ getCritRegions = (complex, finalEdge) -> (
             regionEdges := getEdges regionTriangles;
             boundaryEdges := getBoundaryEdges regionTriangles;
             boundary := set getVertices boundaryEdges;
-            innerEdges := select(regionEdges, e -> not isSubset(e, boundary));
+            -- Separating edges: region edges that are neither boundary nor strictly interior.
+            innerEdges := select(regionEdges, edge -> not isSubset(edge, boundary));
             separatingEdges := toList ((set regionEdges) - ((set boundaryEdges) + (set innerEdges)));
 
             eulerChar := eulerCharSrfc regionTriangles;
@@ -122,18 +176,18 @@ getCritRegions = (complex, finalEdge) -> (
                 logException(complex, concatenate("critical region has few inner edges, ", regionDetailStr));
             );
 
-            -- Remove splits that belong to this critical region.
-            outerSplits := select(remainingSplits, s ->
-                not (member(sort {s_0_SPLITBASE, s_0_SPLITNEIGHBORS_0}, regionEdges)
-                    and member(sort {s_0_SPLITBASE, s_0_SPLITNEIGHBORS_1}, regionEdges)));
+            -- Remove vertex splits that belong to this critical region.
+            outerSplits := select(remainingSplits, split ->
+                not (member(sort {split.splitData.base, (split.splitData.neighbors)_0}, regionEdges)
+                    and member(sort {split.splitData.base, (split.splitData.neighbors)_1}, regionEdges)));
             suspectedInnerSplits := toList (set remainingSplits) - (set outerSplits);
             suspectVerts := getVertices separatingEdges;
             for i from 0 to #suspectVerts - 1 do (
-                sv := suspectVerts_i;
-                critEdges := select(separatingEdges, e -> member(sv, e));
-                foundSplits := select(suspectedInnerSplits, s -> s_0_SPLITBASE == sv);
-                foundSplits = select(foundSplits, s ->
-                    all(critEdges, e -> not isSameSideSplit(regionTriangles, sv, s_0_SPLITNEIGHBORS, e)));
+                suspectVertex := suspectVerts_i;
+                critEdges := select(separatingEdges, edge -> member(suspectVertex, edge));
+                foundSplits := select(suspectedInnerSplits, split -> split.splitData.base == suspectVertex);
+                foundSplits = select(foundSplits, split ->
+                    all(critEdges, edge -> not isSameSideSplit(regionTriangles, suspectVertex, split.splitData.neighbors, edge)));
                 outerSplits = outerSplits | foundSplits;
             );
 
@@ -143,17 +197,28 @@ getCritRegions = (complex, finalEdge) -> (
 
         logInfo concatenate("regions count: ", toString regionsCount);
 
-        -- Splits outside critical regions that still have the same final edge
+        -- Vertex splits outside critical regions that still have the same final edge
         -- need to be processed in the next iteration.
-        badSplits := select(remainingSplits, s -> s_1);
+        badSplits := select(remainingSplits, split -> split.preservesFinalEdge);
         if #badSplits > 0 then (
             print "uh oh! bad split outside critical regions";
             logException(complex, concatenate("bad splits outside critical regions: ",
-                toString (badSplits / (s -> concatenate("base: ", toString s_0_SPLITBASE,
-                    ", neighbors: ", toString s_0_SPLITNEIGHBORS)))));
+                toString (badSplits / (split -> concatenate("base: ", toString split.splitData.base,
+                    ", neighbors: ", toString split.splitData.neighbors)))));
         );
-        splitsToReturn = join(splitsToReturn, (select(remainingSplits, s -> s_2)) / (s -> s_3));
+        nextComplexes = join(nextComplexes, (select(remainingSplits, split -> split.noVertex4)) / (split -> split.complex));
     );
 
-    {critRegionStrings, splitsToReturn}
+    new CritRegionsResult from { critRegionStrings => critRegionStrings, nextComplexes => nextComplexes }
 );
+
+doc ///
+  Key
+    getCritRegions
+  Headline
+    identify critical regions of a triangulated surface relative to its final shift edge
+  Usage
+    getCritRegions(complex, finalEdge)
+  Example
+    getCritRegions({{1,2,3},{1,3,4},{1,4,5},{1,5,2},{2,3,4},{2,4,5}}, {1,2})
+///
