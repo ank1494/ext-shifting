@@ -1,5 +1,5 @@
-allNonegInts = lst -> all(lst, i -> (ZZ === class i and i >= 0))
-
+-- Validates that simplices and fullOrder are compatible: all simplex vertices appear in fullOrder,
+-- all faces have equal dimension, and all vertex labels are non-negative integers.
 validateForExtShift = (simplices, fullOrder) -> (
     fSimplices := set flatten simplices;
     fFullOrder := set flatten fullOrder;
@@ -8,49 +8,97 @@ validateForExtShift = (simplices, fullOrder) -> (
     if not allNonegInts(toList (fSimplices + fFullOrder)) then error "vertices must be nonnegative integers";
     );
 
+-- Computes the exterior shift of a simplicial complex with respect to a given total order on simplices.
+-- Constructs the compound matrix A where rows correspond to the n-faces of the complex and columns
+-- to all n-simplices in fullOrder. Entry (i,j) is the minor of a random matrix with rows/cols given
+-- by simplices_i and fullOrder_j. Returns the smallest set of simplices in fullOrder whose columns
+-- form a basis for the column space of A (equivalently: the greedy basis under the given order).
+-- Vertex indices in the result are 1-indexed (incremented from the 0-indexed working representation).
 exteriorShift = (simplices, fullOrder) -> (
     sortedSimps := simplices / (i -> sort i);
     validateForExtShift(sortedSimps, fullOrder);
-    v := 1 + max flatten fullOrder;
-    l := #(fullOrder_0);
-    Mat := compound(randomMatrix(v, l), sortedSimps, fullOrder);
+    vertexBound := 1 + max flatten fullOrder;
+    simplexDim := #(fullOrder_0);
+    Mat := compound(randomMatrix(vertexBound, simplexDim), sortedSimps, fullOrder);
     result := if rank submatrix(Mat, {0}) > 0 then {0} else {};
-    r := rank Mat;
+    targetRank := rank Mat;
     for i from 1 to (#fullOrder - 1) do (
-        if r == #result then break;
+        if targetRank == #result then break;
         if (rank submatrix(Mat, 0..i)) > (rank submatrix(Mat, 0..i-1)) then result = append(result, i);
     );
-    sort bump toList apply(result, i -> fullOrder_i)
+    sort incrementVertices toList apply(result, i -> fullOrder_i)
     )
 
+doc ///
+  Key
+    exteriorShift
+  Headline
+    compute the exterior shift of a simplicial complex under a given total order
+  Usage
+    exteriorShift(simplices, fullOrder)
+  Description
+    Example
+      exteriorShift({{0,1},{0,2},{1,2}}, LexOrder(3,2))
+///
+
+-- Exterior shift under the lex order on {0,...,v-1}.
+-- Returns result with 1-indexed vertices.
 extShiftLex = simplices ->
     if #simplices == 0 then set {} else (
         if not allEqLengths simplices then error "simplices must all be same dimension";
-        v := 1 + max flatten simplices;
-        l := #(simplices_0);
-        lexOrd := LexOrder(v, l);
+        vertexBound := 1 + max flatten simplices;
+        simplexDim := #(simplices_0);
+        lexOrd := LexOrder(vertexBound, simplexDim);
         exteriorShift(simplices, lexOrd)
     );
 
+doc ///
+  Key
+    extShiftLex
+  Headline
+    compute the exterior shift of a simplicial complex under the lex order
+  Usage
+    extShiftLex simplices
+  Description
+    Example
+      extShiftLex {{1,2},{1,3},{2,3}}
+///
+
+-- Exterior shift under the reverse-lex order on {0,...,v-1}.
+-- Returns result with 1-indexed vertices.
 extShiftRevLex = simplices ->
     if #simplices == 0 then set {} else (
         if not allEqLengths simplices then error "simplices must all be same dimension";
-        v := 1 + max flatten simplices;
-        l := #(simplices_0);
-        revlexOrd := RevLexOrder(v, l);
+        vertexBound := 1 + max flatten simplices;
+        simplexDim := #(simplices_0);
+        revlexOrd := RevLexOrder(vertexBound, simplexDim);
         exteriorShift(simplices, revlexOrd)
     );
 
+doc ///
+  Key
+    extShiftRevLex
+  Headline
+    compute the exterior shift of a simplicial complex under the reverse-lex order
+  Usage
+    extShiftRevLex simplices
+  Description
+    Example
+      extShiftRevLex {{1,2},{1,3},{2,3}}
+///
+
+-- Symbolic (non-random) variant: uses a generic matrix over a fraction field so the result is
+-- deterministic. Slower than exteriorShift; used when exact symbolic computation is required.
 exteriorShiftN = (simplices, fullOrder) -> (
     validateForExtShift(simplices, fullOrder);
-    v := 1 + max flatten fullOrder;
-    l := #(fullOrder_0);
-    Mat := compound(genericMatrix(frac QQ[x_1..x_(v*v)], v, v), simplices, fullOrder);
+    vertexBound := 1 + max flatten fullOrder;
+    simplexDim := #(fullOrder_0);
+    Mat := compound(genericMatrix(frac QQ[x_1..x_(vertexBound*vertexBound)], vertexBound, vertexBound), simplices, fullOrder);
     result := {};
-    r := rank Mat;
+    targetRank := rank Mat;
     currentRank := 0;
     for i from 0 to (#fullOrder - 1) do (
-        if r == #result then break;
+        if targetRank == #result then break;
         nextSubMtrx := submatrix(Mat, append(result, i));
         if (rank nextSubMtrx) > currentRank then (
             result = append(result, i);
@@ -60,23 +108,74 @@ exteriorShiftN = (simplices, fullOrder) -> (
     set apply(result, i -> fullOrder_i)
     );
 
+doc ///
+  Key
+    exteriorShiftN
+  Headline
+    compute the exterior shift symbolically using a generic matrix
+  Usage
+    exteriorShiftN(simplices, fullOrder)
+  Description
+    Example
+      exteriorShiftN({{0,1},{0,2},{1,2}}, LexOrder(3,2))
+///
+
+-- Symbolic lex shift (see exteriorShiftN).
 extShiftLexN = simplices ->
     if #simplices == 0 then set {} else (
         if not allEqLengths simplices then error "simplices must all be same dimension";
-        v := 1 + max flatten simplices;
-        l := #(simplices_0);
-        lexOrd := LexOrder(v, l);
+        vertexBound := 1 + max flatten simplices;
+        simplexDim := #(simplices_0);
+        lexOrd := LexOrder(vertexBound, simplexDim);
         exteriorShiftN(simplices, lexOrd)
     );
 
+doc ///
+  Key
+    extShiftLexN
+  Headline
+    compute the exterior shift under the lex order using a generic matrix
+  Usage
+    extShiftLexN simplices
+  Description
+    Example
+      extShiftLexN {{1,2},{1,3},{2,3}}
+///
+
+-- Symbolic reverse-lex shift (see exteriorShiftN).
 extShiftRevLexN = simplices ->
     if #simplices == 0 then set {} else (
         if not allEqLengths simplices then error "simplices must all be same dimension";
-        v := 1 + max flatten simplices;
-        l := #(simplices_0);
-        revlexOrd := RevLexOrder(v, l);
+        vertexBound := 1 + max flatten simplices;
+        simplexDim := #(simplices_0);
+        revlexOrd := RevLexOrder(vertexBound, simplexDim);
         exteriorShiftN(simplices, revlexOrd)
     );
 
+doc ///
+  Key
+    extShiftRevLexN
+  Headline
+    compute the exterior shift under the reverse-lex order using a generic matrix
+  Usage
+    extShiftRevLexN simplices
+  Description
+    Example
+      extShiftRevLexN {{1,2},{1,3},{2,3}}
+///
+
 -- Returns the final (last in lex order) edge of the exterior shift of a triangulation's edges.
+-- Used as the convergence witness in the iterative analysis.
 finalEdgeOfShift = cplx -> (extShiftLex getEdges cplx)_-1;
+
+doc ///
+  Key
+    finalEdgeOfShift
+  Headline
+    return the last edge (in lex order) of the exterior shift of a triangulation
+  Usage
+    finalEdgeOfShift cplx
+  Description
+    Example
+      finalEdgeOfShift {{1,2,3},{1,3,4},{1,2,4},{2,3,4}}
+///
