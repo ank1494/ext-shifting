@@ -251,3 +251,16 @@ doc ///
     Example
       contractCplx({{0,1,2},{0,2,3}}, {0,1})
 ///
+
+TEST ///
+  irredTori := value get "data/surface triangulations/irredTori.m2";
+  tri := irredTori_0;
+  splits := nonTrivialVertexSplits tri;
+  -- Minimal 7-vertex torus: all 7 vertices have degree 6.
+  -- Per degree-6 vertex, the inner loop (min(4, i+3) upper bound) gives
+  -- 3+3+2+1 = 9 non-trivial splits, so 7 × 9 = 63 total.
+  assert(#splits == 63)
+  -- Vertex splits preserve Euler characteristic.
+  chiTri := eulerCharSrfc tri;
+  assert(all(splits, split -> eulerCharSrfc(split_0) == chiTri))
+///

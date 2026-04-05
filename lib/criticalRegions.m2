@@ -227,3 +227,42 @@ doc ///
     Example
       getCritRegions({{1,2,3},{1,3,4},{1,4,5},{1,5,2},{2,3,4},{2,4,5}}, {1,2})
 ///
+
+TEST ///
+  irredTori := value get "data/surface triangulations/irredTori.m2";
+  -- 10-vertex irreducible torus (irredTori_20): the exterior shift of its edges
+  -- is non-trivial (1-skeleton is not complete), so the final edge is a meaningful
+  -- regression value: {4,10} (1-indexed).
+  assert(finalEdgeOfShift (irredTori_20) == {4,10})
+  -- Minimal 7-vertex torus (irredTori_0): structural regression for getCritRegions.
+  tri := irredTori_0;
+  result := getCritRegions(tri, finalEdgeOfShift tri);
+  assert(instance(result, CritRegionsResult))
+  assert(instance(result.critRegionStrings, Set))
+  assert(instance(result.nextComplexes, List))
+  assert(#result.critRegionStrings > 0)
+///
+
+TEST ///
+  -- Klein bottle triangulation (irredKb_0): structural regression.
+  irredKb := value get "data/surface triangulations/irredKb.m2";
+  tri := irredKb_0;
+  result := getCritRegions(tri, finalEdgeOfShift tri);
+  assert(instance(result, CritRegionsResult))
+  assert(instance(result.critRegionStrings, Set))
+  assert(instance(result.nextComplexes, List))
+  assert(#result.critRegionStrings > 0)
+///
+
+TEST ///
+  -- Minimal 6-vertex RP² (irredPp_0): 1-skeleton is K6 (10 triangles × 3 / 2 = 15 = C(6,2)),
+  -- so finalEdgeOfShift is the last 1-indexed edge of K6 in lex order: {5,6}.
+  irredPp := value get "data/surface triangulations/irredPp.m2";
+  tri := irredPp_0;
+  assert(finalEdgeOfShift tri == {5,6})
+  result := getCritRegions(tri, finalEdgeOfShift tri);
+  assert(instance(result, CritRegionsResult))
+  assert(instance(result.critRegionStrings, Set))
+  assert(instance(result.nextComplexes, List))
+  assert(#result.critRegionStrings > 0)
+///

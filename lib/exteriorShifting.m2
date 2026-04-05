@@ -88,7 +88,12 @@ doc ///
 ///
 
 -- Symbolic (non-random) variant: uses a generic matrix over a fraction field so the result is
--- deterministic. Slower than exteriorShift; used when exact symbolic computation is required.
+-- deterministic.
+-- KNOWN ISSUE: exteriorShiftN, extShiftLexN, and extShiftRevLexN are unusable in practice —
+-- the generic matrix computation is too large and M2 hangs for any non-trivial input. Do NOT
+-- use these functions for testing or computation. Use exteriorShift / extShiftLex / extShiftRevLex
+-- instead. For idempotency tests, apply extShiftLex to its own output: an already-shifted complex
+-- must be a fixed point of the shift regardless of the random matrix chosen.
 exteriorShiftN = (simplices, fullOrder) -> (
     validateForExtShift(simplices, fullOrder);
     vertexBound := 1 + max flatten fullOrder;
@@ -178,4 +183,52 @@ doc ///
   Description
     Example
       finalEdgeOfShift {{1,2,3},{1,3,4},{1,2,4},{2,3,4}}
+///
+
+-- isShifted helper: a simplicial complex (1-indexed vertices) satisfies the shifted
+-- property if for every face and every vertex i in that face, replacing i with any
+-- smaller vertex j not in the face yields another face of the complex.
+-- Used in the TEST blocks below; defined here so both blocks can reference it.
+isShiftedCplx = cplxFaces -> all(cplxFaces, face -> all(face, i ->
+    all(select(toList(1..(i-1)), j -> not member(j, face)), j ->
+        member(sort join(delete(i, face), {j}), cplxFaces))));
+
+TEST ///
+  -- normalize: convert a 1-indexed shift result back to 0-indexed so that
+  -- re-applying extShiftLex uses the same vertex set (idempotency requires this).
+  normalize := S -> (toList S) / (face -> face / (v -> v - 1));
+
+  -- Idempotency of extShiftLex: the exterior shift of an already-shifted complex
+  -- is the complex itself (fixed-point property), regardless of the random matrix.
+  -- Edges (1-simplices)
+  S1 := extShiftLex {{0,1},{0,2},{1,2}};
+  assert(extShiftLex(normalize S1) == S1)
+  S2 := extShiftLex {{0,1},{0,2},{0,3},{1,2},{1,3}};
+  assert(extShiftLex(normalize S2) == S2)
+  -- Triangles (2-simplices)
+  S3 := extShiftLex {{0,1,2},{0,1,3},{0,2,3},{1,2,3}};
+  assert(extShiftLex(normalize S3) == S3)
+
+  -- Shiftedness of extShiftLex output: exterior shifting always produces a shifted complex.
+  assert(isShiftedCplx extShiftLex {{0,1},{0,2},{1,2}})
+  assert(isShiftedCplx extShiftLex {{0,1},{0,2},{0,3},{1,2},{1,3}})
+  assert(isShiftedCplx extShiftLex {{0,1,2},{0,1,3},{0,2,3},{1,2,3}})
+///
+
+TEST ///
+  normalize := S -> (toList S) / (face -> face / (v -> v - 1));
+
+  -- Idempotency of extShiftRevLex.
+  S1 := extShiftRevLex {{0,1},{0,2},{1,2}};
+  assert(extShiftRevLex(normalize S1) == S1)
+  S2 := extShiftRevLex {{0,1},{0,2},{0,3},{1,2},{1,3}};
+  assert(extShiftRevLex(normalize S2) == S2)
+  S3 := extShiftRevLex {{0,1,2},{0,1,3},{0,2,3},{1,2,3}};
+  assert(extShiftRevLex(normalize S3) == S3)
+
+  -- Shiftedness of extShiftRevLex output: exterior shifting produces shifted complexes
+  -- regardless of whether lex or rev-lex order is used for the shift itself.
+  assert(isShiftedCplx extShiftRevLex {{0,1},{0,2},{1,2}})
+  assert(isShiftedCplx extShiftRevLex {{0,1},{0,2},{0,3},{1,2},{1,3}})
+  assert(isShiftedCplx extShiftRevLex {{0,1,2},{0,1,3},{0,2,3},{1,2,3}})
 ///

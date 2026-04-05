@@ -297,3 +297,17 @@ doc ///
     Example
       findEdgesWithOneMissingTriangle {{0,1,2},{1,2,3}}
 ///
+
+TEST ///
+  -- Tetrahedron boundary (topological sphere): F=4, V=4, E=6 → χ = 4+4-6 = 2
+  assert(eulerCharSrfc {{0,1,2},{0,1,3},{0,2,3},{1,2,3}} == 2)
+  -- Minimal 7-vertex torus: F=14, V=7, E=21 → χ = 14+7-21 = 0
+  irredTori := value get "data/surface triangulations/irredTori.m2";
+  assert(eulerCharSrfc (irredTori_0) == 0)
+  -- Minimal 6-vertex RP²: F=10, V=6, E=15 → χ = 10+6-15 = 1
+  irredPp := value get "data/surface triangulations/irredPp.m2";
+  assert(eulerCharSrfc (irredPp_0) == 1)
+  -- Minimal 8-vertex Klein bottle: F=16, V=8, E=24 → χ = 16+8-24 = 0
+  irredKb := value get "data/surface triangulations/irredKb.m2";
+  assert(eulerCharSrfc (irredKb_0) == 0)
+///
