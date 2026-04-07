@@ -80,9 +80,13 @@ All functions below are available after `load "libs.m2"`.
 
 | Function | Description |
 |---|---|
-| `getCritRegions(complex, finalEdge)` | Identifies critical regions and vertex splits to pass to the next iteration; returns `{critRegionStrings, splitsForNextIteration}` |
+| `getCritRegions(complex, finalEdge)` | Identifies critical regions and vertex splits to pass to the next iteration; returns a `CritRegionsResult` |
+| `getCritRegions(complex, finalEdge, exemptSplits => splits)` | Same, but first filters `splits` (a list of `{base, neighbors}` pairs) from the non-trivial split enumeration |
 | `analyzeIteration triangulations` | Pure mathematical core of one analysis iteration: takes a list of triangulations, returns `(foundCritRegions, splitsForNextCalc, largestNonPrefixVertices)` |
+| `analyzeIteration(triangulations, exemptions => table)` | Same, but `table` is a `HashTable` mapping triangulations to their exempt split lists (see `kbExemptSplits.m2`) |
 
-## Known limitations: Klein bottle cases
+## Klein bottle split exemptions
 
-There are a few cases in the analysis of the Klein bottle that are not caught by the current critical region detection. These manifest as "bad splits outside critical regions" logged to the exceptions file. Work to address these is ongoing.
+Three vertex splits on `irredKb_25` (a 10-vertex Klein bottle formed by connected sum of two irreducible RP² triangulations at vertices 0, 1, 2) are topologically equivalent to a trivial split on one RP² component before gluing. The `nonTrivialVertexSplits` filter cannot detect this because the connected sum hides the triviality.
+
+The file `data/surface triangulations/kbExemptSplits.m2` defines a `HashTable` mapping `irredKb_25` to these three exempt splits (`{0,{1,2}}`, `{1,{0,2}}`, `{2,{0,1}}`). The analysis script (`runAnalysis.m2`) loads this file and passes it to `analyzeIteration`, suppressing the false-positive exceptions.

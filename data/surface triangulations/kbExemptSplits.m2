@@ -1,0 +1,23 @@
+-- Exempt vertex splits for the iterative Klein bottle analysis.
+--
+-- irredKb_25 (see irredKb.m2, index 25) is a 10-vertex Klein bottle triangulation
+-- reached by connected sum of two irreducible RP² triangulations glued at vertices
+-- 0, 1, 2. The three vertex splits {0,{1,2}}, {1,{0,2}}, {2,{0,1}} decompose across
+-- the connected sum seam in a way that is topologically equivalent to inserting an
+-- interior vertex on one RP² component before gluing — i.e. each is a hidden trivial
+-- split. The nonTrivialVertexSplits filter does not detect this because the connected
+-- sum hides the triviality, causing false-positive "bad split outside critical regions"
+-- exceptions. These exemptions suppress those false positives.
+--
+-- Split-result triangulations (moved from criticalKbSplits.m2 for reference):
+-- split {0,{1,2}}:
+--   {{1,5,6},{1,3,5},{2,5,6},{1,2,3},{2,3,6},{0,4,7},{1,4,7},{1,7,8},{0,1,8},{0,4,8},
+--    {2,4,8},{1,2,4},{2,7,8},{0,2,7},{0,1,9},{1,6,9},{3,6,9},{3,5,9},{2,5,9},{0,2,9}}
+-- split {1,{0,2}}:
+--   {{0,3,5},{0,2,5},{2,5,6},{2,3,6},{0,3,6},{0,4,7},{1,4,7},{1,7,8},{0,1,8},{0,4,8},
+--    {2,4,8},{1,2,4},{2,7,8},{0,2,7},{0,1,9},{0,6,9},{5,6,9},{3,5,9},{2,3,9},{1,2,9}}
+-- split {2,{0,1}}:
+--   {{0,1,6},{1,5,6},{1,3,5},{0,3,5},{0,3,6},{0,4,7},{1,4,7},{1,7,8},{0,1,8},{0,4,8},
+--    {2,4,8},{1,2,4},{2,7,8},{0,2,7},{0,2,9},{0,5,9},{5,6,9},{3,6,9},{1,3,9},{1,2,9}}
+irredKb := value get "data/surface triangulations/irredKb.m2";
+new HashTable from { irredKb_25 => {{0,{1,2}}, {1,{0,2}}, {2,{0,1}}} }

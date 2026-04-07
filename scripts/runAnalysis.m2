@@ -34,11 +34,15 @@ try (load "libs.m2"; libsLoaded = true);
 if not libsLoaded then (stderr << "error: failed to load libs.m2" << endl; exit 2);
 printLive "libraries loaded";
 
+printLive "loading exempt splits...";
+kbExemptSplits := value get "data/surface triangulations/kbExemptSplits.m2";
+printLive "exempt splits loaded";
+
 if #triangulations > 0 then (
     printLive concatenate("begin calculation, ", toString(#triangulations), " triangulations to analyze");
     logFile << "begin calculation" << endl;
 
-    (foundCritRegions, splitsForNextCalc, largestNonPrefixTriangulation) := analyzeIteration triangulations;
+    (foundCritRegions, splitsForNextCalc, largestNonPrefixTriangulation) := analyzeIteration(triangulations, exemptions => kbExemptSplits);
 
     --output summary
     critRegionsSummary = concatenate("the following critical regions were found: ", toString toList foundCritRegions);
