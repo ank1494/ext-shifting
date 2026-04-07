@@ -83,14 +83,16 @@ doc ///
 -- characteristic 1) or Möbius strip (Euler characteristic 0) by eulerCharSrfc. A non-cycle boundary
 -- is treated as an error condition. Vertex splits outside critical regions whose final edge is
 -- non-prefix (no vertex 4) are passed to the next iteration via nextComplexes.
+-- Optional exemptSplits: list of {base, neighbors} pairs to exclude before shift computation.
 -- Returns a CritRegionsResult.
-getCritRegions = (srfc, finalEdge) -> (
+getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
     -- Use distinct accumulator names to avoid shadowing the HashTable key symbols.
     critRegStrs := set {};
     nextCplxes := {};
 
-    -- Compute non-trivial vertex splits and annotate each with shift data.
+    -- Compute non-trivial vertex splits; filter exempt splits before shift computation.
     rawSplits := nonTrivialVertexSplits srfc;
+    rawSplits = select(rawSplits, pair -> (vsd := pair_1; not member({vsd.base, vsd.neighbors}, opts.exemptSplits)));
     splits := {};
     for i from 0 to #rawSplits - 1 do (
         splitComplex := rawSplits_i_0;
@@ -223,6 +225,7 @@ doc ///
     identify critical regions of a triangulated surface relative to its final shift edge
   Usage
     getCritRegions(complex, finalEdge)
+    getCritRegions(complex, finalEdge, exemptSplits => splits)
   Description
     Example
       getCritRegions({{1,2,3},{1,3,4},{1,4,5},{1,5,2},{2,3,4},{2,4,5}}, {1,2})
@@ -267,4 +270,36 @@ TEST ///
   assert(instance(result.critRegionStrings, Set))
   assert(instance(result.nextComplexes, List))
   assert(#result.critRegionStrings == 0)
+///
+
+TEST ///
+  -- irredKb_25 (10-vertex Klein bottle, connected sum of two RP² triangulations at
+  -- vertices 0, 1, 2) produces three false-positive "bad split" exceptions without
+  -- exemptions. This regression test confirms that broken behavior exists and is
+  -- preserved as the baseline that kbExemptSplits.m2 is designed to fix.
+  irredKb := value get "data/surface triangulations/irredKb.m2";
+  tri := irredKb_25;
+  finalE := finalEdgeOfShift tri;
+  badSplitLogged := false;
+  logException = (cplx, msg) -> ( badSplitLogged = true );
+  result := getCritRegions(tri, finalE);
+  assert(instance(result, CritRegionsResult))
+  assert(badSplitLogged)
+  logException = (cplx, msg) -> null;
+///
+
+TEST ///
+  -- getCritRegions with exemptSplits filters out the three hidden-trivial splits on
+  -- irredKb_25 before shift computation, so no "bad split" exception is logged.
+  irredKb := value get "data/surface triangulations/irredKb.m2";
+  kbExempts := value get "data/surface triangulations/kbExemptSplits.m2";
+  tri := irredKb_25;
+  finalE := finalEdgeOfShift tri;
+  exempts := if kbExempts#?tri then kbExempts#tri else {};
+  badSplitLogged := false;
+  logException = (cplx, msg) -> ( badSplitLogged = true );
+  result := getCritRegions(tri, finalE, exemptSplits => exempts);
+  assert(instance(result, CritRegionsResult))
+  assert(not badSplitLogged)
+  logException = (cplx, msg) -> null;
 ///
