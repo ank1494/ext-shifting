@@ -38,6 +38,62 @@ nextQueueSeq = (pendingDir, doneDir) -> (
     else max(apply(allFiles, f -> value f)) + 1
 );
 
+-- Emits a run_paused event to stdout (cap hit before queue emptied).
+emitRunPaused = () -> (
+    stdio << "EVENT:{\"type\":\"run_paused\"}" << endl;
+);
+
+-- Emits a run_complete event to stdout (queue emptied naturally).
+emitRunComplete = () -> (
+    stdio << "EVENT:{\"type\":\"run_complete\"}" << endl;
+);
+
+-- Runs the queue loop until pending/ is empty or a batch cap is hit.
+-- Optional caps (all nullable — null means uncapped):
+--   itemCap        => ZZ    : stop after processing this many items
+--   maxVertexCount => ZZ    : stop before processing an item whose triangulation
+--                             has more vertices than this threshold
+--   timeoutSeconds => ZZ    : wall-clock timeout in seconds (soft — never mid-item)
+--   exemptions     => HashTable : passed through to processQueueItem
+-- Returns "complete" if queue emptied, "paused" if a cap stopped the run.
+runQueue = {
+    itemCap => null,
+    maxVertexCount => null,
+    timeoutSeconds => null,
+    exemptions => new HashTable from {}
+} >> opts -> (pendingDir, doneDir) -> (
+    startTime := currentTime();
+    itemsProcessed := 0;
+    status := "complete";
+    running := true;
+    while running do (
+        pendingFiles := sort select(readDirectory pendingDir, f -> f != "." and f != "..");
+        if #pendingFiles == 0 then (
+            running = false;
+        ) else (
+            shouldPause := false;
+            if opts.itemCap =!= null and itemsProcessed >= opts.itemCap then (
+                shouldPause = true;
+            ) else if opts.timeoutSeconds =!= null and currentTime() - startTime >= opts.timeoutSeconds then (
+                shouldPause = true;
+            ) else if opts.maxVertexCount =!= null then (
+                nextItem := readQueueItem concatenate(pendingDir, "/", pendingFiles_0);
+                if #(getVertices nextItem#"triangulation") > opts.maxVertexCount then
+                    shouldPause = true;
+            );
+            if shouldPause then (
+                status = "paused";
+                running = false;
+            ) else (
+                processQueueItem(pendingDir, doneDir, exemptions => opts.exemptions);
+                itemsProcessed = itemsProcessed + 1;
+            );
+        );
+    );
+    if status === "complete" then emitRunComplete() else emitRunPaused();
+    status
+);
+
 -- Emits a structured item_started event to stdout.
 emitItemStarted = (itemName, depth, parent) -> (
     stdio << "EVENT:{\"type\":\"item_started\",\"item\":\"" | itemName |
@@ -190,4 +246,37 @@ TEST ///
       assert(splitItem#"parent" === "0001");
       assert(splitItem#"depth" === 1);
   );
+///
+
+TEST ///
+  -- runQueue with itemCap=1 processes exactly 1 item then returns "paused"
+  tmpBase := temporaryFileName();
+  mkdir tmpBase;
+  pendingDir := concatenate(tmpBase, "/pending");
+  doneDir := concatenate(tmpBase, "/done");
+  mkdir pendingDir;
+  mkdir doneDir;
+  toriAll := value get "data/surface triangulations/irredTori.m2";
+  for i from 0 to 2 do
+      writeQueueItem(concatenate(pendingDir, "/", queueSeqStr(i+1, 4)), "seed", 0, i+1, toriAll_i);
+  result := runQueue(pendingDir, doneDir, itemCap => 1);
+  assert(result === "paused")
+  doneFiles := select(readDirectory doneDir, f -> f != "." and f != "..");
+  assert(#doneFiles == 1)
+///
+
+TEST ///
+  -- runQueue runs to convergence: pending/ empties and returns "complete"
+  -- Uses the 10-vertex irreducible torus (index 21), which converges quickly.
+  tmpBase := temporaryFileName();
+  mkdir tmpBase;
+  pendingDir := concatenate(tmpBase, "/pending");
+  doneDir := concatenate(tmpBase, "/done");
+  mkdir pendingDir;
+  mkdir doneDir;
+  tri10v := (value get "data/surface triangulations/irredTori.m2")_20;
+  writeQueueItem(concatenate(pendingDir, "/0001"), "seed", 0, 1, tri10v);
+  result := runQueue(pendingDir, doneDir);
+  assert(result === "complete")
+  assert(0 == #select(readDirectory pendingDir, f -> f != "." and f != ".."))
 ///
