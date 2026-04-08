@@ -28,17 +28,17 @@ parseCapArg = argIdx -> (
     else value((scriptCommandLine)_argIdx)
 );
 
-itemCap        := parseCapArg 2;
-maxVertexCount := parseCapArg 3;
-timeoutSeconds := parseCapArg 4;
+capItem     := parseCapArg 2;
+capMaxVerts := parseCapArg 3;
+capTimeout  := parseCapArg 4;
 
 pendingDir := concatenate(outputDirPath, "/pending");
 doneDir    := concatenate(outputDirPath, "/done");
 
 runQueue(pendingDir, doneDir,
-    itemCap        => itemCap,
-    maxVertexCount => maxVertexCount,
-    timeoutSeconds => timeoutSeconds,
+    itemCap        => capItem,
+    maxVertexCount => capMaxVerts,
+    timeoutSeconds => capTimeout,
     exemptions     => kbExemptSplits);
 
 exit 0;

@@ -280,3 +280,39 @@ TEST ///
   assert(result === "complete")
   assert(0 == #select(readDirectory pendingDir, f -> f != "." and f != ".."))
 ///
+
+TEST ///
+  -- runQueue accepts all four options without error when cap variables are
+  -- given distinct names that do not shadow the option symbols.
+  -- Guards against the bug where := bindings named itemCap / maxVertexCount /
+  -- timeoutSeconds shadow those symbols, causing null => null options and an
+  -- "unknown key or option" error at the call site.
+  tmpBase := temporaryFileName();
+  mkdir tmpBase;
+  pd := concatenate(tmpBase, "/pending");
+  dd := concatenate(tmpBase, "/done");
+  mkdir pd; mkdir dd;
+  toriAll := value get "data/surface triangulations/irredTori.m2";
+  writeQueueItem(concatenate(pd, "/0001"), "seed", 0, 1, toriAll_0);
+  capItem := 1;
+  capMaxVerts := null;
+  capTimeout := null;
+  result := runQueue(pd, dd,
+      itemCap => capItem, maxVertexCount => capMaxVerts,
+      timeoutSeconds => capTimeout, exemptions => new HashTable from {});
+  assert(result === "paused")
+///
+
+TEST ///
+  -- initQueueEnv uses analysisOutputDir (absolute path) as outputDirPath
+  -- This guards against the relative-path bug where M2 and C# disagree on
+  -- where pending/ and done/ live.
+  tmpBase := temporaryFileName();
+  analysisOutputDir = tmpBase;
+  analysisName = "test-run";
+  analysisInputFile = "data/surface triangulations/irredTori.m2";
+  load "scripts/initQueueEnv.m2";
+  assert(outputDirPath === tmpBase)
+  assert(isDirectory concatenate(tmpBase, "/pending"))
+  assert(isDirectory concatenate(tmpBase, "/done"))
+///

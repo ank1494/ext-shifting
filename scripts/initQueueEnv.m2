@@ -3,14 +3,13 @@
 --
 -- Expects globals set by the caller (e.g. runItem.m2 or a config file):
 --   analysisName      -- string: name of this analysis run
+--   analysisOutputDir -- string: absolute path to the run output directory
 --   analysisInputFile -- string: absolute path to the initial triangulations file
 --
 -- Sets global used by subsequent scripts:
 --   outputDirPath -- string: path to the run output directory
 
-ANALYSIS'OUTPUT'FOLDER = "analysis output";
-try mkdir ANALYSIS'OUTPUT'FOLDER;
-outputDirPath = concatenate(ANALYSIS'OUTPUT'FOLDER, "/", analysisName);
+outputDirPath = analysisOutputDir;
 if not isDirectory outputDirPath then mkdir outputDirPath;
 
 initQueue(outputDirPath, analysisInputFile);
