@@ -289,15 +289,15 @@ TEST ///
   -- "unknown key or option" error at the call site.
   tmpBase := temporaryFileName();
   mkdir tmpBase;
-  pd := concatenate(tmpBase, "/pending");
-  dd := concatenate(tmpBase, "/done");
-  mkdir pd; mkdir dd;
+  testPendingDir := concatenate(tmpBase, "/pending");
+  testDoneDir    := concatenate(tmpBase, "/done");
+  mkdir testPendingDir; mkdir testDoneDir;
   toriAll := value get "data/surface triangulations/irredTori.m2";
-  writeQueueItem(concatenate(pd, "/0001"), "seed", 0, 1, toriAll_0);
+  writeQueueItem(concatenate(testPendingDir, "/0001"), "seed", 0, 1, toriAll_0);
   capItem := 1;
   capMaxVerts := null;
   capTimeout := null;
-  result := runQueue(pd, dd,
+  result := runQueue(testPendingDir, testDoneDir,
       itemCap => capItem, maxVertexCount => capMaxVerts,
       timeoutSeconds => capTimeout, exemptions => new HashTable from {});
   assert(result === "paused")
