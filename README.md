@@ -25,24 +25,56 @@ extShiftLex getEdges myTriangulation
 
 ## How to run the iterative analysis
 
-1. Create a config file (e.g. `my_config.m2`) containing:
+The queue-based analysis stores each pending triangulation as its own file, so it survives interruption and can be resumed at any time.
+
+### Worked example — irreducible tori
+
+1. Create a config file (e.g. `my_config.m2`):
 
    ```
-   analysisName = "my-analysis"
-   analysisInputFile = "/absolute/path/to/input.m2"
+   analysisName = "tori-analysis"
+   analysisInputFile = "/absolute/path/to/data/surface triangulations/irredTori.m2"
    ```
 
-   The input file is a list of triangulations. You can use the provided input files under `data/surface triangulations/` (e.g. `irredTori.m2`, `irredKb.m2`, `irredPp.m2`).
-
-2. Open a terminal in the root of the cloned repository and run:
+2. Run the queue orchestrator from the root of the cloned repository:
 
    ```
-   M2 --script scripts/runAnalysis.m2 /absolute/path/to/my_config.m2
+   M2 --script scripts/runQueue.m2 /absolute/path/to/my_config.m2
    ```
 
-3. M2 exits with code **0** when the analysis has converged (no more splits to calculate), or code **1** if another iteration is needed. Repeat step 2 until M2 exits with code 0.
+   The script processes triangulations one at a time, printing structured lifecycle events (`EVENT:{...}`) alongside raw M2 output, until the queue is empty (convergence).
 
-4. Results are written to `analysis output/<analysisName>/`. Each `iteration_<n>/` folder contains summary files with the findings of that iteration.
+3. Results are written to `analysis output/<analysisName>/`. Processed items accumulate in `done/` and unprocessed items remain in `pending/`.
+
+### Resuming a paused run
+
+Run the same command again — `initQueueEnv.m2` detects the existing `pending/` directory and skips re-seeding, so the run continues from where it left off:
+
+```
+M2 --script scripts/runQueue.m2 /absolute/path/to/my_config.m2
+```
+
+### Batch caps
+
+Pass optional caps as positional arguments after the config path (use `null` to skip a cap):
+
+```
+M2 --script scripts/runQueue.m2 /absolute/path/to/my_config.m2 <itemCap> <maxVertexCount> <timeoutSeconds>
+```
+
+| Argument | Effect |
+|---|---|
+| `itemCap` | Stop after processing this many triangulations |
+| `maxVertexCount` | Stop before processing a triangulation with more vertices than this |
+| `timeoutSeconds` | Stop after this many wall-clock seconds (never mid-item) |
+
+Example — process at most 10 items, no other caps:
+
+```
+M2 --script scripts/runQueue.m2 /absolute/path/to/my_config.m2 10 null null
+```
+
+The script emits `EVENT:{"type":"run_paused"}` when a cap stops the run, or `EVENT:{"type":"run_complete"}` when the queue empties naturally.
 
 ## Functions to know
 
