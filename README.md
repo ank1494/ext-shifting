@@ -34,6 +34,7 @@ The queue-based analysis stores each pending triangulation as its own file, so i
    ```
    analysisName = "tori-analysis"
    analysisInputFile = "/absolute/path/to/data/surface triangulations/irredTori.m2"
+   analysisOutputDir = "/absolute/path/to/analysis output/tori-analysis"
    ```
 
 2. Run the queue orchestrator from the root of the cloned repository:
