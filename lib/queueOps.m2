@@ -38,14 +38,14 @@ nextQueueSeq = (pendingDir, doneDir) -> (
     else max(apply(allFiles, f -> value f)) + 1
 );
 
--- Emits a run_paused event to stdout (cap hit before queue emptied).
+-- Emits a run_paused event to stderr (unbuffered; cap hit before queue emptied).
 emitRunPaused = () -> (
-    stdio << "EVENT:{\"type\":\"run_paused\"}" << endl;
+    stderr << "EVENT:{\"type\":\"run_paused\"}" << endl;
 );
 
--- Emits a run_complete event to stdout (queue emptied naturally).
+-- Emits a run_complete event to stderr (unbuffered; queue emptied naturally).
 emitRunComplete = () -> (
-    stdio << "EVENT:{\"type\":\"run_complete\"}" << endl;
+    stderr << "EVENT:{\"type\":\"run_complete\"}" << endl;
 );
 
 -- Runs the queue loop until pending/ is empty or a batch cap is hit.
@@ -94,16 +94,16 @@ runQueue = {
     status
 );
 
--- Emits a structured item_started event to stdout.
+-- Emits a structured item_started event to stderr (unbuffered).
 emitItemStarted = (itemName, depth, parent) -> (
-    stdio << "EVENT:{\"type\":\"item_started\",\"item\":\"" | itemName |
+    stderr << "EVENT:{\"type\":\"item_started\",\"item\":\"" | itemName |
         "\",\"depth\":" | toString depth |
         ",\"parent\":\"" | parent | "\"}" << endl;
 );
 
--- Emits a structured item_done event to stdout.
+-- Emits a structured item_done event to stderr (unbuffered).
 emitItemDone = (itemName, splitCount) -> (
-    stdio << "EVENT:{\"type\":\"item_done\",\"item\":\"" | itemName |
+    stderr << "EVENT:{\"type\":\"item_done\",\"item\":\"" | itemName |
         "\",\"splits\":" | toString splitCount | "}" << endl;
 );
 
