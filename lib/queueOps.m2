@@ -66,7 +66,16 @@ runQueue = {
     itemsProcessed := 0;
     status := "complete";
     running := true;
+    -- Run directory is the parent of pendingDir (pendingDir ends with "/pending")
+    runDirPath := substring(pendingDir, 0, #pendingDir - #"/pending");
     while running do (
+        -- Check for graceful stop signal written by C# Stop() before processing next item
+        stopSignalPath := concatenate(runDirPath, "/stop_requested");
+        if fileExists stopSignalPath then (
+            removeFile stopSignalPath;
+            status = "paused";
+            running = false;
+        ) else (
         pendingFiles := sort select(readDirectory pendingDir, f -> f != "." and f != "..");
         if #pendingFiles == 0 then (
             running = false;
@@ -89,6 +98,7 @@ runQueue = {
                 itemsProcessed = itemsProcessed + 1;
             );
         );
+        ); -- end stop-signal else branch
     );
     if status === "complete" then emitRunComplete() else emitRunPaused();
     status
@@ -315,4 +325,26 @@ TEST ///
   assert(outputDirPath === tmpBase)
   assert(isDirectory concatenate(tmpBase, "/pending"))
   assert(isDirectory concatenate(tmpBase, "/done"))
+///
+
+TEST ///
+  -- runQueue halts before processing any item when stop_requested signal file is present
+  -- Signal file is consumed (deleted) and status returned is "paused"
+  tmpBase := temporaryFileName();
+  mkdir tmpBase;
+  testPendingDir := concatenate(tmpBase, "/pending");
+  testDoneDir    := concatenate(tmpBase, "/done");
+  mkdir testPendingDir; mkdir testDoneDir;
+  toriAll := value get "data/surface triangulations/irredTori.m2";
+  writeQueueItem(concatenate(testPendingDir, "/0001"), "seed", 0, 1, toriAll_0);
+  writeQueueItem(concatenate(testPendingDir, "/0002"), "seed", 0, 2, toriAll_1);
+  -- Write stop_requested signal in run directory (parent of pending/)
+  concatenate(tmpBase, "/stop_requested") << "" << close;
+  result := runQueue(testPendingDir, testDoneDir);
+  assert(result === "paused")
+  -- Signal file must be deleted after being consumed
+  assert(not fileExists concatenate(tmpBase, "/stop_requested"))
+  -- No items should have been processed
+  doneFiles := select(readDirectory testDoneDir, f -> f != "." and f != "..");
+  assert(#doneFiles == 0)
 ///

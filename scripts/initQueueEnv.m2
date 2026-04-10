@@ -10,6 +10,10 @@
 --   outputDirPath -- string: path to the run output directory
 
 outputDirPath = analysisOutputDir;
-if not isDirectory outputDirPath then mkdir outputDirPath;
+if not isDirectory outputDirPath then (
+    parentDir := replace("/[^/]*$", "", outputDirPath);
+    if parentDir != outputDirPath and not isDirectory parentDir then mkdir parentDir;
+    mkdir outputDirPath;
+);
 
 initQueue(outputDirPath, analysisInputFile);
