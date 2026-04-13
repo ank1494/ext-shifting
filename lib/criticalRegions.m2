@@ -99,6 +99,7 @@ getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
         vSplitData := rawSplits_i_1;
         shift1 := extShiftLex getEdges splitComplex;
         shift2 := extShiftLex getEdges splitComplex;
+        collectGarbage();
         splits = append(splits, new ShiftAnnotatedSplit from {
             splitData => vSplitData,
             preservesFinalEdge => (finalEdge == shift1_-1) and (finalEdge == shift2_-1),
@@ -139,8 +140,8 @@ getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
                 inners = inners + set {currentV};
                 trianglesWithCurrentV := select(srfc, t -> member(currentV, t));
                 regionTriangles = regionTriangles + set trianglesWithCurrentV;
-                neighbors := (set flatten trianglesWithCurrentV) - inners;
-                critNeighbors := neighbors * remainingCritVertices;
+                vertexNeighbors := (set flatten trianglesWithCurrentV) - inners;
+                critNeighbors := vertexNeighbors * remainingCritVertices;
                 unprocessedVsForRegion = unprocessedVsForRegion + critNeighbors;
                 remainingCritVertices = remainingCritVertices - critNeighbors;
             );
@@ -231,32 +232,11 @@ doc ///
       getCritRegions({{1,2,3},{1,3,4},{1,4,5},{1,5,2},{2,3,4},{2,4,5}}, {1,2})
 ///
 
-TEST ///
-  irredTori := value get "data/surface triangulations/irredTori.m2";
-  -- 10-vertex irreducible torus (irredTori_20): the exterior shift of its edges
-  -- is non-trivial (1-skeleton is not complete), so the final edge is a meaningful
-  -- regression value: {4,10} (1-indexed).
-  assert(finalEdgeOfShift (irredTori_20) == {4,10})
-  -- irredTori_4 is an 8-vertex torus with a degree-4 vertex (vertex 0), so
-  -- getCritRegions is expected to find at least one critical region.
-  result := getCritRegions(irredTori_4, finalEdgeOfShift irredTori_4);
-  assert(instance(result, CritRegionsResult))
-  assert(instance(result.critRegionStrings, Set))
-  assert(instance(result.nextComplexes, List))
-  assert(#result.critRegionStrings > 0)
-///
-
-TEST ///
-  -- irredKb_5 is an 8-vertex irreducible Klein bottle triangulation with a
-  -- degree-4 vertex (vertex 0), so getCritRegions is expected to find at least
-  -- one critical region.
-  irredKb := value get "data/surface triangulations/irredKb.m2";
-  result := getCritRegions(irredKb_5, finalEdgeOfShift irredKb_5);
-  assert(instance(result, CritRegionsResult))
-  assert(instance(result.critRegionStrings, Set))
-  assert(instance(result.nextComplexes, List))
-  assert(#result.critRegionStrings > 0)
-///
+-- Tests for getCritRegions on large triangulations (8-vertex torus, 8-vertex Klein
+-- bottle) have been moved to tests/criticalRegions-tori.m2 and
+-- tests/criticalRegions-kb.m2. They exceed the check runner's 400 MB GC heap cap
+-- because extShiftLex on their 9-vertex vertex-split complexes computes a 36x36
+-- exteriorPower determinant.
 
 TEST ///
   -- Minimal 6-vertex RP² (irredPp_0): 1-skeleton is K6 (10 triangles × 3 / 2 = 15 = C(6,2)),
@@ -272,34 +252,7 @@ TEST ///
   assert(#result.critRegionStrings == 0)
 ///
 
-TEST ///
-  -- irredKb_25 (10-vertex Klein bottle, connected sum of two RP² triangulations at
-  -- vertices 0, 1, 2) produces three false-positive "bad split" exceptions without
-  -- exemptions. This regression test confirms that broken behavior exists and is
-  -- preserved as the baseline that kbExemptSplits.m2 is designed to fix.
-  irredKb := value get "data/surface triangulations/irredKb.m2";
-  tri := irredKb_25;
-  finalE := finalEdgeOfShift tri;
-  badSplitLogged := false;
-  logException = (cplx, msg) -> ( badSplitLogged = true );
-  result := getCritRegions(tri, finalE);
-  assert(instance(result, CritRegionsResult))
-  assert(badSplitLogged)
-  logException = (cplx, msg) -> null;
-///
-
-TEST ///
-  -- getCritRegions with exemptSplits filters out the three hidden-trivial splits on
-  -- irredKb_25 before shift computation, so no "bad split" exception is logged.
-  irredKb := value get "data/surface triangulations/irredKb.m2";
-  kbExempts := value get "data/surface triangulations/kbExemptSplits.m2";
-  tri := irredKb_25;
-  finalE := finalEdgeOfShift tri;
-  exempts := if kbExempts#?tri then kbExempts#tri else {};
-  badSplitLogged := false;
-  logException = (cplx, msg) -> ( badSplitLogged = true );
-  result := getCritRegions(tri, finalE, exemptSplits => exempts);
-  assert(instance(result, CritRegionsResult))
-  assert(not badSplitLogged)
-  logException = (cplx, msg) -> null;
-///
+-- Tests for getCritRegions on irredKb_25 (10-vertex Klein bottle) have been moved to
+-- tests/criticalRegions-kb25-badSplit.m2 and tests/criticalRegions-kb25-exemptSplits.m2.
+-- They exceed the check runner's 400 MB GC heap cap because extShiftLex on 11-vertex
+-- vertex-split complexes computes a 55x55 exteriorPower determinant.
