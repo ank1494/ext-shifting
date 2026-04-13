@@ -5,10 +5,10 @@ Comments, questions, suggestions, corrections etc. are welcome at aaron.keehn@ma
 
 ## Installation
 
-To install as a Macaulay2 package, run in an M2 session:
+Clone the repository, then run in an M2 session (replacing the path with your actual clone location):
 
 ```
-installPackage("ExtShifting", FileName => "https://github.com/ank1494/ext-shifting/archive/refs/heads/main.zip")
+installPackage("ExtShifting", FileName => "/path/to/ext-shifting/ExtShifting.m2")
 ```
 
 After installation, load with `loadPackage "ExtShifting"`. All lib functions and `SimplicialComplexes` are available automatically.
