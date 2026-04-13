@@ -221,59 +221,11 @@ TEST ///
   assert(item#"seq" === 1)
 ///
 
-TEST ///
-  -- processQueueItem moves the processed item from pending/ to done/
-  tmpBase := temporaryFileName();
-  mkdir tmpBase;
-  pendingDir := concatenate(tmpBase, "/pending");
-  doneDir := concatenate(tmpBase, "/done");
-  mkdir pendingDir;
-  mkdir doneDir;
-  tri := (value get "data/surface triangulations/irredTori.m2")_0;
-  writeQueueItem(concatenate(pendingDir, "/0001"), "seed", 0, 1, tri);
-  processQueueItem(pendingDir, doneDir);
-  doneFiles := select(readDirectory doneDir, f -> f != "." and f != "..");
-  assert(#doneFiles == 1)
-  pendingFilenames := select(readDirectory pendingDir, f -> f != "." and f != "..");
-  assert(not member("0001", pendingFilenames))
-///
-
-TEST ///
-  -- splits produced by processQueueItem have parent set to the source item filename
-  tmpBase := temporaryFileName();
-  mkdir tmpBase;
-  pendingDir := concatenate(tmpBase, "/pending");
-  doneDir := concatenate(tmpBase, "/done");
-  mkdir pendingDir;
-  mkdir doneDir;
-  toriAll := value get "data/surface triangulations/irredTori.m2";
-  tri := toriAll_0;
-  writeQueueItem(concatenate(pendingDir, "/0001"), "seed", 0, 1, tri);
-  processQueueItem(pendingDir, doneDir);
-  splitFiles := sort select(readDirectory pendingDir, f -> f != "." and f != "..");
-  for fName in splitFiles do (
-      splitItem := readQueueItem concatenate(pendingDir, "/", fName);
-      assert(splitItem#"parent" === "0001");
-      assert(splitItem#"depth" === 1);
-  );
-///
-
-TEST ///
-  -- runQueue with itemCap=1 processes exactly 1 item then returns "paused"
-  tmpBase := temporaryFileName();
-  mkdir tmpBase;
-  pendingDir := concatenate(tmpBase, "/pending");
-  doneDir := concatenate(tmpBase, "/done");
-  mkdir pendingDir;
-  mkdir doneDir;
-  toriAll := value get "data/surface triangulations/irredTori.m2";
-  for i from 0 to 2 do
-      writeQueueItem(concatenate(pendingDir, "/", queueSeqStr(i+1, 4)), "seed", 0, i+1, toriAll_i);
-  result := runQueue(pendingDir, doneDir, itemCap => 1);
-  assert(result === "paused")
-  doneFiles := select(readDirectory doneDir, f -> f != "." and f != "..");
-  assert(#doneFiles == 1)
-///
+-- Tests for processQueueItem and runQueue on 8-vertex tori have been moved to
+-- tests/queueOps-processItem-moves.m2, tests/queueOps-processItem-parent.m2, and
+-- tests/queueOps-runQueue-itemCap.m2. They exceed the check runner's 400 MB GC heap
+-- cap because extShiftLex on 9-vertex vertex-split complexes computes a 36x36
+-- exteriorPower determinant.
 
 TEST ///
   -- runQueue runs to convergence: pending/ empties and returns "complete"
@@ -291,27 +243,10 @@ TEST ///
   assert(0 == #select(readDirectory pendingDir, f -> f != "." and f != ".."))
 ///
 
-TEST ///
-  -- runQueue accepts all four options without error when cap variables are
-  -- given distinct names that do not shadow the option symbols.
-  -- Guards against the bug where := bindings named itemCap / maxVertexCount /
-  -- timeoutSeconds shadow those symbols, causing null => null options and an
-  -- "unknown key or option" error at the call site.
-  tmpBase := temporaryFileName();
-  mkdir tmpBase;
-  testPendingDir := concatenate(tmpBase, "/pending");
-  testDoneDir    := concatenate(tmpBase, "/done");
-  mkdir testPendingDir; mkdir testDoneDir;
-  toriAll := value get "data/surface triangulations/irredTori.m2";
-  writeQueueItem(concatenate(testPendingDir, "/0001"), "seed", 0, 1, toriAll_0);
-  capItem := 1;
-  capMaxVerts := null;
-  capTimeout := null;
-  result := runQueue(testPendingDir, testDoneDir,
-      itemCap => capItem, maxVertexCount => capMaxVerts,
-      timeoutSeconds => capTimeout, exemptions => new HashTable from {});
-  assert(result === "paused")
-///
+-- Test for runQueue options-shadowing regression has been moved to
+-- tests/queueOps-runQueue-options.m2. It exceeds the check runner's 400 MB GC heap
+-- cap because extShiftLex on 9-vertex vertex-split complexes computes a 36x36
+-- exteriorPower determinant.
 
 TEST ///
   -- initQueueEnv uses analysisOutputDir (absolute path) as outputDirPath
