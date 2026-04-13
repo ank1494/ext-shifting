@@ -3,6 +3,16 @@ Macaulay2 code for exterior shifting and analyzing the shiftings of surfaces.
 
 Comments, questions, suggestions, corrections etc. are welcome at aaron.keehn@mail.huj.ac.il
 
+## Installation
+
+To install as a Macaulay2 package, run in an M2 session:
+
+```
+installPackage("ExtShifting", FileName => "https://github.com/ank1494/ext-shifting/archive/refs/heads/main.zip")
+```
+
+After installation, load with `loadPackage "ExtShifting"`. All lib functions and `SimplicialComplexes` are available automatically.
+
 ## How to load the libraries
 
 ```
