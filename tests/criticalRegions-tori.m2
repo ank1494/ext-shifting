@@ -14,8 +14,14 @@ assert(finalEdgeOfShift (irredTori_20) == {4,10})
 -- getCritRegions is expected to find at least one critical region.
 result := getCritRegions(irredTori_4, finalEdgeOfShift irredTori_4);
 assert(instance(result, CritRegionsResult))
-assert(instance(result.critRegionStrings, Set))
+assert(instance(result.critRegions, Set))
 assert(instance(result.nextComplexes, List))
-assert(#result.critRegionStrings > 0)
+assert(#result.critRegions > 0)
+-- Each element of critRegions is a HashTable with the expected keys and types.
+firstRegion := (toList result.critRegions)_0;
+assert(instance(firstRegion, HashTable))
+assert(instance(firstRegion#"regionShape", String))
+assert(instance(firstRegion#"boundaryVertexCount", ZZ))
+assert(instance(firstRegion#"innerVertexCount", ZZ))
 
 print "criticalRegions-tori: PASSED"

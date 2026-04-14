@@ -35,7 +35,7 @@ export {
     "VertexSplitData", "allSplitsAtVertex0", "nonTrivialSplitsAtVertex0",
     "nonTrivialVertexSplits",
     -- criticalRegions.m2
-    "ShiftAnnotatedSplit", "CritRegionsResult", "getCritRegionString",
+    "ShiftAnnotatedSplit", "CritRegionsResult",
     "isSameSideSplit", "getCritRegions",
     "exemptSplits",
     -- HashTable key symbols for VertexSplitData fields
@@ -43,7 +43,7 @@ export {
     -- HashTable key symbols for ShiftAnnotatedSplit fields
     "splitData", "preservesFinalEdge", "noVertex4",
     -- HashTable key symbols for CritRegionsResult fields
-    "critRegionStrings", "nextComplexes",
+    "critRegions", "nextComplexes",
     -- polynomialSimpcomp.m2
     "getSimpComp", "facetToMonomial",
     -- analyzeIteration.m2
