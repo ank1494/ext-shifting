@@ -111,10 +111,34 @@ emitItemStarted = (itemName, depth, parent) -> (
         ",\"parent\":\"" | parent | "\"}" << endl;
 );
 
+-- Formats a single critical region HashTable as a JSON object string.
+critRegionToJson = r ->
+    "{\"regionShape\":\"" | r#"regionShape" |
+    "\",\"boundaryVertexCount\":" | toString r#"boundaryVertexCount" |
+    ",\"innerVertexCount\":" | toString r#"innerVertexCount" | "}";
+
+-- Formats a list of critical region HashTable objects as a JSON array string.
+critRegionsToJson = critRegionsList ->
+    "[" | concatenate between(",", apply(critRegionsList, critRegionToJson)) | "]";
+
 -- Emits a structured item_done event to stderr (unbuffered).
-emitItemDone = (itemName, splitCount) -> (
+emitItemDone = (itemName, splitCount, critRegionsList) -> (
     stderr << "EVENT:{\"type\":\"item_done\",\"item\":\"" | itemName |
-        "\",\"splits\":" | toString splitCount | "}" << endl;
+        "\",\"splits\":" | toString splitCount |
+        ",\"critRegions\":" | critRegionsToJson critRegionsList | "}" << endl;
+);
+
+-- Writes a done item file at path.
+-- Extends the queue item format with a critRegions key holding a list of
+-- critical region HashTable objects (serialized via toExternalString).
+writeDoneItem = (path, parent, depth, seq, tri, critRegionsList) -> (
+    f := path << "new HashTable from {" << endl;
+    f << "  \"parent\" => " << toExternalString parent << "," << endl;
+    f << "  \"depth\" => " << toExternalString depth << "," << endl;
+    f << "  \"seq\" => " << toExternalString seq << "," << endl;
+    f << "  \"triangulation\" => " << toExternalString tri << "," << endl;
+    f << "  \"critRegions\" => " << toExternalString critRegionsList << endl;
+    f << "}" << close;
 );
 
 -- Processes the next item from pending/:
@@ -145,10 +169,11 @@ processQueueItem = {exemptions => new HashTable from {}} >> opts -> (pendingDir,
     );
 
     donePath := concatenate(doneDir, "/", itemName);
-    copyFile(itemPath, donePath);
+    critRegionsList := toList critRegions;
+    writeDoneItem(donePath, parent, depth, item#"seq", tri, critRegionsList);
     removeFile itemPath;
 
-    emitItemDone(itemName, #splits);
+    emitItemDone(itemName, #splits, critRegionsList);
     #splits
 );
 

@@ -52,6 +52,7 @@ export {
     "queueSeqStr", "writeQueueItem", "readQueueItem", "nextQueueSeq",
     "emitRunPaused", "emitRunComplete", "runQueue",
     "emitItemStarted", "emitItemDone", "processQueueItem", "initQueue",
+    "writeDoneItem", "critRegionToJson", "critRegionsToJson",
     "itemCap", "maxVertexCount", "timeoutSeconds", "exemptions",
     -- logging stubs
     "logInfo", "logException"
