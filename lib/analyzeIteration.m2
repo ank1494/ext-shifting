@@ -2,12 +2,11 @@
 -- For each triangulation whose final shift edge does not involve vertex 4 (the "prefix" condition),
 -- computes the critical regions and collects vertex-split complexes for the next iteration.
 -- Returns a triple: (accumulated critical region HashTable objects, complexes for next iteration, largest complex size seen).
--- The initial critRegions set includes the trivial disk region (the base triangulation K_4).
 -- Optional exemptions: HashTable mapping triangulations to lists of {base, neighbors} pairs to exempt.
 analyzeIteration = {exemptions => new HashTable from {}} >> opts -> triangulations -> (
     splits := {};
     largest := 0;
-    critRegions := set {makeCritRegion("disk",3,0)};
+    critRegions := set {};
 
     for trIdx from 0 to #triangulations - 1 do (
         tri := triangulations_trIdx;
@@ -28,6 +27,13 @@ analyzeIteration = {exemptions => new HashTable from {}} >> opts -> triangulatio
 
     (critRegions, splits, largest)
 );
+
+TEST ///
+  -- Empty input produces an empty critRegions set (no trivial seed).
+  result := analyzeIteration({});
+  assert(instance(result, Sequence))
+  assert(#(result#0) == 0)
+///
 
 doc ///
   Key
