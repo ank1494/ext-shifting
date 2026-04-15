@@ -3,7 +3,7 @@
 ShiftAnnotatedSplit = new Type of HashTable
 
 -- Typed return value of getCritRegions.
--- Fields: critRegions (set of critical region HashTable objects), nextComplexes (list of complexes for next iteration).
+-- Fields: critRegions (set of critical region HashTable objects), nextSplits (list of {complex, VertexSplitData} pairs for next iteration).
 CritRegionsResult = new Type of HashTable
 
 doc ///
@@ -12,7 +12,7 @@ doc ///
   Headline
     typed return value of getCritRegions
   Usage
-    result = getCritRegions(complex, finalEdge); result.critRegions; result.nextComplexes
+    result = getCritRegions(complex, finalEdge); result.critRegions; result.nextSplits
   Description
     Example
       getCritRegions({{1,2,3},{1,3,4},{1,4,2},{2,3,4}}, {1,2})
@@ -75,7 +75,7 @@ doc ///
 -- Critical vertices are grouped into connected regions; each region is classified as disk (Euler
 -- characteristic 1) or Möbius strip (Euler characteristic 0) by eulerCharSrfc. A non-cycle boundary
 -- is treated as an error condition. Vertex splits outside critical regions whose final edge is
--- non-prefix (no vertex 4) are passed to the next iteration via nextComplexes.
+-- non-prefix (no vertex 4) are passed to the next iteration via nextSplits.
 -- Optional exemptSplits: list of {base, neighbors} pairs to exclude before shift computation.
 -- Returns a CritRegionsResult.
 getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
@@ -206,10 +206,10 @@ getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
                 toString (badSplits / (split -> concatenate("base: ", toString split.splitData.base,
                     ", neighbors: ", toString split.splitData.neighbors)))));
         );
-        nextCplxes = join(nextCplxes, (select(remainingSplits, split -> split.noVertex4)) / (split -> split.complex));
+        nextCplxes = join(nextCplxes, (select(remainingSplits, split -> split.noVertex4)) / (split -> {split.complex, split.splitData}));
     );
 
-    new CritRegionsResult from { critRegions => critRegStrs, nextComplexes => nextCplxes }
+    new CritRegionsResult from { critRegions => critRegStrs, nextSplits => nextCplxes }
 );
 
 doc ///
@@ -241,8 +241,14 @@ TEST ///
   result := getCritRegions(tri, finalEdgeOfShift tri);
   assert(instance(result, CritRegionsResult))
   assert(instance(result.critRegions, Set))
-  assert(instance(result.nextComplexes, List))
+  assert(instance(result.nextSplits, List))
   assert(#result.critRegions == 0)
+  -- each element of nextSplits is a {complex, VertexSplitData} pair
+  for pair in result.nextSplits do (
+    assert(instance(pair, List));
+    assert(#pair == 2);
+    assert(instance(pair_1, VertexSplitData));
+  );
 ///
 
 -- Tests for getCritRegions on irredKb_25 (10-vertex Klein bottle) have been moved to

@@ -15,12 +15,18 @@ queueSeqStr = (n, width) -> (
 --   "parent"        => parent filename (or "seed" for items from the initial input)
 --   "depth"         => integer depth in the split tree (0 for seeds)
 --   "seq"           => integer sequence number
+--   "splitFrom"     => (optional) HashTable with "vertex" and "neighbors" keys (absent for seeds)
 --   "triangulation" => list of faces (list of vertex lists)
-writeQueueItem = (path, parent, depth, seq, tri) -> (
+-- Optional: splitFrom => VertexSplitData (default null; omitted when null)
+writeQueueItem = {splitFrom => null} >> opts -> (path, parent, depth, seq, tri) -> (
     f := path << "new HashTable from {" << endl;
     f << "  \"parent\" => " << toExternalString parent << "," << endl;
     f << "  \"depth\" => " << toExternalString depth << "," << endl;
     f << "  \"seq\" => " << toExternalString seq << "," << endl;
+    if opts.splitFrom =!= null then (
+        vsd := opts.splitFrom;
+        f << "  \"splitFrom\" => new HashTable from {\"vertex\" => " << toExternalString vsd.base << ", \"neighbors\" => " << toExternalString vsd.neighbors << "}," << endl;
+    );
     f << "  \"triangulation\" => " << toExternalString tri << endl;
     f << "}" << close;
 );
@@ -131,11 +137,16 @@ emitItemDone = (itemName, splitCount, critRegionsList) -> (
 -- Writes a done item file at path.
 -- Extends the queue item format with a critRegions key holding a list of
 -- critical region HashTable objects (serialized via toExternalString).
-writeDoneItem = (path, parent, depth, seq, tri, critRegionsList) -> (
+-- Optional: splitFrom => VertexSplitData (default null; omitted when null)
+writeDoneItem = {splitFrom => null} >> opts -> (path, parent, depth, seq, tri, critRegionsList) -> (
     f := path << "new HashTable from {" << endl;
     f << "  \"parent\" => " << toExternalString parent << "," << endl;
     f << "  \"depth\" => " << toExternalString depth << "," << endl;
     f << "  \"seq\" => " << toExternalString seq << "," << endl;
+    if opts.splitFrom =!= null then (
+        vsd := opts.splitFrom;
+        f << "  \"splitFrom\" => new HashTable from {\"vertex\" => " << toExternalString vsd.base << ", \"neighbors\" => " << toExternalString vsd.neighbors << "}," << endl;
+    );
     f << "  \"triangulation\" => " << toExternalString tri << "," << endl;
     f << "  \"critRegions\" => " << toExternalString critRegionsList << endl;
     f << "}" << close;
@@ -165,12 +176,17 @@ processQueueItem = {exemptions => new HashTable from {}} >> opts -> (pendingDir,
     for i from 0 to #splits - 1 do (
         seq := nextSeq + i;
         fname := concatenate(pendingDir, "/", queueSeqStr(seq, 4));
-        writeQueueItem(fname, itemName, depth + 1, seq, splits_i);
+        splitPair := splits_i;
+        writeQueueItem(fname, itemName, depth + 1, seq, splitPair_0, splitFrom => splitPair_1);
     );
 
     donePath := concatenate(doneDir, "/", itemName);
     critRegionsList := toList critRegions;
-    writeDoneItem(donePath, parent, depth, item#"seq", tri, critRegionsList);
+    itemSplitFrom := if item#?"splitFrom" then (
+        sf := item#"splitFrom";
+        new VertexSplitData from { base => sf#"vertex", neighbors => sf#"neighbors", ratio => {} }
+    ) else null;
+    writeDoneItem(donePath, parent, depth, item#"seq", tri, critRegionsList, splitFrom => itemSplitFrom);
     removeFile itemPath;
 
     emitItemDone(itemName, #splits, critRegionsList);
@@ -193,6 +209,54 @@ initQueue = (outputDir, inputFile) -> (
         writeQueueItem(fname, "seed", 0, i + 1, triangulations_i);
     );
 );
+
+TEST ///
+  -- writeQueueItem with splitFrom writes a "splitFrom" HashTable field with "vertex" and "neighbors"
+  tmpBase := temporaryFileName();
+  mkdir tmpBase;
+  vsd := new VertexSplitData from { base => 3, neighbors => {1,2}, ratio => {4,5} };
+  fname := concatenate(tmpBase, "/0001");
+  writeQueueItem(fname, "seed", 0, 1, {{1,2,3}}, splitFrom => vsd);
+  item := readQueueItem fname;
+  assert(item#?"splitFrom")
+  sf := item#"splitFrom";
+  assert(sf#"vertex" === 3)
+  assert(sf#"neighbors" === {1,2})
+///
+
+TEST ///
+  -- writeQueueItem without splitFrom does NOT write a "splitFrom" field
+  tmpBase := temporaryFileName();
+  mkdir tmpBase;
+  fname := concatenate(tmpBase, "/0001");
+  writeQueueItem(fname, "seed", 0, 1, {{1,2,3}});
+  item := readQueueItem fname;
+  assert(not item#?"splitFrom")
+///
+
+TEST ///
+  -- writeDoneItem with splitFrom writes a "splitFrom" HashTable field
+  tmpBase := temporaryFileName();
+  mkdir tmpBase;
+  vsd := new VertexSplitData from { base => 5, neighbors => {2,4}, ratio => {1,3} };
+  fname := concatenate(tmpBase, "/0001");
+  writeDoneItem(fname, "seed", 0, 1, {{1,2,3}}, {}, splitFrom => vsd);
+  item := readQueueItem fname;
+  assert(item#?"splitFrom")
+  sf := item#"splitFrom";
+  assert(sf#"vertex" === 5)
+  assert(sf#"neighbors" === {2,4})
+///
+
+TEST ///
+  -- writeDoneItem without splitFrom does NOT write a "splitFrom" field
+  tmpBase := temporaryFileName();
+  mkdir tmpBase;
+  fname := concatenate(tmpBase, "/0001");
+  writeDoneItem(fname, "seed", 0, 1, {{1,2,3}}, {});
+  item := readQueueItem fname;
+  assert(not item#?"splitFrom")
+///
 
 TEST ///
   -- initQueue creates pending/ and done/ subdirectories on first run
@@ -244,6 +308,7 @@ TEST ///
   assert(item#"parent" === "seed")
   assert(item#"depth" === 0)
   assert(item#"seq" === 1)
+  assert(not item#?"splitFrom")
 ///
 
 -- Tests for processQueueItem and runQueue on 8-vertex tori have been moved to

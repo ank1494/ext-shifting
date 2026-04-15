@@ -43,7 +43,7 @@ export {
     -- HashTable key symbols for ShiftAnnotatedSplit fields
     "splitData", "preservesFinalEdge", "noVertex4",
     -- HashTable key symbols for CritRegionsResult fields
-    "critRegions", "nextComplexes",
+    "critRegions", "nextSplits",
     -- polynomialSimpcomp.m2
     "getSimpComp", "facetToMonomial",
     -- analyzeIteration.m2
@@ -54,6 +54,7 @@ export {
     "emitItemStarted", "emitItemDone", "processQueueItem", "initQueue",
     "writeDoneItem", "critRegionToJson", "critRegionsToJson",
     "itemCap", "maxVertexCount", "timeoutSeconds", "exemptions",
+    "splitFrom",
     -- logging stubs
     "logInfo", "logException"
 }

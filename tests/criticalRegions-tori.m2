@@ -15,7 +15,7 @@ assert(finalEdgeOfShift (irredTori_20) == {4,10})
 result := getCritRegions(irredTori_4, finalEdgeOfShift irredTori_4);
 assert(instance(result, CritRegionsResult))
 assert(instance(result.critRegions, Set))
-assert(instance(result.nextComplexes, List))
+assert(instance(result.nextSplits, List))
 assert(#result.critRegions > 0)
 -- Each element of critRegions is a HashTable with the expected keys and types.
 firstRegion := (toList result.critRegions)_0;
