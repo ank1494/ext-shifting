@@ -17,9 +17,9 @@ analyzeIteration = {exemptions => new HashTable from {}} >> opts -> triangulatio
             exemptSplitsForTri := if opts.exemptions#?tri then opts.exemptions#tri else {};
             critRegCalculation := getCritRegions(tri, finalE, exemptSplits => exemptSplitsForTri);
             critRegions = critRegions + critRegCalculation.critRegions;
-            if 0 < #critRegCalculation.nextComplexes then (
+            if 0 < #critRegCalculation.nextSplits then (
                 largest = max(largest, 1 + cplxSize);
-                splits = splits | critRegCalculation.nextComplexes;
+                splits = splits | critRegCalculation.nextSplits;
             );
         );
         collectGarbage();
@@ -33,6 +33,13 @@ TEST ///
   result := analyzeIteration({});
   assert(instance(result, Sequence))
   assert(#(result#0) == 0)
+///
+
+TEST ///
+  -- analyzeIteration second element is a List (even when empty — irredPp produces no splits).
+  irredPp := value get "data/surface triangulations/irredPp.m2";
+  result := analyzeIteration({irredPp_0});
+  assert(instance(result#1, List))
 ///
 
 doc ///
