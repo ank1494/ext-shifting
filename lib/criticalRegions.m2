@@ -3,7 +3,7 @@
 ShiftAnnotatedSplit = new Type of HashTable
 
 -- Typed return value of getCritRegions.
--- Fields: critRegionStrings (set of canonical region strings), nextComplexes (list of complexes for next iteration).
+-- Fields: critRegions (set of critical region HashTable objects), nextComplexes (list of complexes for next iteration).
 CritRegionsResult = new Type of HashTable
 
 doc ///
@@ -12,29 +12,22 @@ doc ///
   Headline
     typed return value of getCritRegions
   Usage
-    result = getCritRegions(complex, finalEdge); result.critRegionStrings; result.nextComplexes
+    result = getCritRegions(complex, finalEdge); result.critRegions; result.nextComplexes
   Description
     Example
       getCritRegions({{1,2,3},{1,3,4},{1,4,2},{2,3,4}}, {1,2})
 ///
 
--- Returns a canonical string identifier for a critical region of the form "type,boundary,inner".
--- regionType: "disk" (eulerChar=1) or "mobius" (eulerChar=0)
--- boundarySize: number of boundary vertices; innerSize: number of inner vertices.
-getCritRegionString = (regionType, boundarySize, innerSize) ->
-    concatenate(regionType, ",", toString boundarySize, ",", toString innerSize);
-
-doc ///
-  Key
-    getCritRegionString
-  Headline
-    produce a canonical string identifier for a critical region
-  Usage
-    getCritRegionString(regionType, boundarySize, innerSize)
-  Description
-    Example
-      getCritRegionString("disk", 3, 0)
-///
+-- Internal constructor for a critical region HashTable.
+-- regionShape: "disk" (eulerChar=1) or "mobius" (eulerChar=0)
+-- boundaryVertexCount: number of boundary vertices; innerVertexCount: number of inner vertices.
+-- Not exported — callers outside the package receive critical region objects from getCritRegions.
+makeCritRegion = (regionShape, boundaryVertexCount, innerVertexCount) ->
+    new HashTable from {
+        "regionShape" => regionShape,
+        "boundaryVertexCount" => boundaryVertexCount,
+        "innerVertexCount" => innerVertexCount
+    };
 
 -- Returns true if both neighbors lie on the same side of critEdge in the triangle fan around bdyVertex.
 -- Traverses the fan starting from a triangle containing critEdge, toggling a boolean each time
@@ -156,7 +149,7 @@ getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
 
             eulerChar := eulerCharSrfc regionTriangles;
             regionType := if eulerChar == 1 then "disk" else "mobius";
-            critRegStrs = critRegStrs + set {getCritRegionString(regionType, #boundary, #inners)};
+            critRegStrs = critRegStrs + set {makeCritRegion(regionType, #boundary, #inners)};
 
             logInfo(concatenate("critical region- inner vertices: ", toString inners,
                 ", boundary: ", toString boundaryEdges,
@@ -216,7 +209,7 @@ getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
         nextCplxes = join(nextCplxes, (select(remainingSplits, split -> split.noVertex4)) / (split -> split.complex));
     );
 
-    new CritRegionsResult from { critRegionStrings => critRegStrs, nextComplexes => nextCplxes }
+    new CritRegionsResult from { critRegions => critRegStrs, nextComplexes => nextCplxes }
 );
 
 doc ///
@@ -247,9 +240,9 @@ TEST ///
   assert(finalEdgeOfShift tri == {5,6})
   result := getCritRegions(tri, finalEdgeOfShift tri);
   assert(instance(result, CritRegionsResult))
-  assert(instance(result.critRegionStrings, Set))
+  assert(instance(result.critRegions, Set))
   assert(instance(result.nextComplexes, List))
-  assert(#result.critRegionStrings == 0)
+  assert(#result.critRegions == 0)
 ///
 
 -- Tests for getCritRegions on irredKb_25 (10-vertex Klein bottle) have been moved to

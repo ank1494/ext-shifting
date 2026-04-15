@@ -11,8 +11,14 @@ load "libs.m2";
 irredKb := value get "data/surface triangulations/irredKb.m2";
 result := getCritRegions(irredKb_5, finalEdgeOfShift irredKb_5);
 assert(instance(result, CritRegionsResult))
-assert(instance(result.critRegionStrings, Set))
+assert(instance(result.critRegions, Set))
 assert(instance(result.nextComplexes, List))
-assert(#result.critRegionStrings > 0)
+assert(#result.critRegions > 0)
+-- Each element of critRegions is a HashTable with the expected keys and types.
+firstRegion := (toList result.critRegions)_0;
+assert(instance(firstRegion, HashTable))
+assert(instance(firstRegion#"regionShape", String))
+assert(instance(firstRegion#"boundaryVertexCount", ZZ))
+assert(instance(firstRegion#"innerVertexCount", ZZ))
 
 print "criticalRegions-kb: PASSED"
