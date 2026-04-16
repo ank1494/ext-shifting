@@ -83,9 +83,8 @@ getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
     critRegStrs := set {};
     nextCplxes := {};
 
-    -- Compute non-trivial vertex splits; filter exempt splits before shift computation.
+    -- Compute non-trivial vertex splits.
     rawSplits := nonTrivialVertexSplits srfc;
-    rawSplits = select(rawSplits, pair -> (vsd := pair_1; not member({vsd.base, vsd.neighbors}, opts.exemptSplits)));
     splits := {};
     for i from 0 to #rawSplits - 1 do (
         splitComplex := rawSplits_i_0;
@@ -196,6 +195,10 @@ getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
         );
 
         logInfo concatenate("regions count: ", toString regionsCount);
+
+        -- Filter exempt splits from the handoff only — they participated in critical region
+        -- classification above but should not be passed to the next iteration.
+        remainingSplits = select(remainingSplits, split -> not member({split.splitData.base, split.splitData.neighbors}, opts.exemptSplits));
 
         -- Vertex splits outside critical regions that still have the same final edge
         -- need to be processed in the next iteration.
