@@ -17,6 +17,7 @@ export {
     "hasNoAdjacentDegree4Vertices", "isConnected", "isCycle", "isPinchedDiskBdry",
     "degreeOfVertex", "numberOfVerticesWithDegree",
     "findEdgeMissingTriangles", "findEdgesWithOneMissingTriangle",
+    "vertexLink",
     -- graphs.m2
     "completeBipartiteEdges",
     -- lex.m2

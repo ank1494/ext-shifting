@@ -12,6 +12,7 @@ Canonical terminology for this codebase and any tooling built around it.
 | **Simplex** | A single face of a simplicial complex — a sorted list of vertex labels, e.g. `{1,2,3}`. The *dimension* of a simplex is its length minus one. | "face", "element" |
 | **Vertex** | A non-negative integer label representing a point in a simplicial complex. | "node", "point" |
 | **k-skeleton** | The sub-collection of all simplices of dimension ≤ k. E.g. the 1-skeleton contains all edges and vertices. | "skeleton of dimension k" |
+| **Vertex link** (new) | Given a vertex `v` in a simplicial complex, the link of `v` is the collection of all faces obtained by taking every face containing `v` and removing `v`. E.g. in `{{1,2,3},{1,2,4}}`, the link of vertex 1 is `{{2,3},{2,4}}`. Implemented by `vertexLink(cplx, v)`. | "star" (distinct concept — the star of `v` includes `v` itself; the link does not), "neighborhood" |
 | **Surface** | A 2-dimensional closed simplicial complex without boundary — a triangulation of a topological surface. All simplices are triangles. | "2-complex", "mesh" |
 | **Triangulation** | A specific surface represented as a list of triangles (3-element simplices). Distinct from the abstract topological surface it represents. In the analysis workflow, `triangulations` is a list of these. | "surface" (when referring specifically to the combinatorial data) |
 | **Exterior shifting** | An operation that maps a simplicial complex to a shifted complex using compound matrices derived from a random matrix. The result depends on a chosen vertex ordering. The canonical function is `exteriorShift`. | "shifting" (acceptable shorthand), "ext shift" |
@@ -60,6 +61,7 @@ Canonical terminology for this codebase and any tooling built around it.
 ## Relationships
 
 - A **triangulation** is a **simplicial complex** where every maximal simplex is a **triangle** (2-simplex).
+- The **vertex link** of `v` in a 2-dimensional complex is itself a graph (a 1-dimensional simplicial complex): the edges formed by the triangles incident to `v`, with `v` removed.
 - A **surface** is a **triangulation** that is closed (no boundary edges) and connected.
 - **Exterior shifting** takes a set of simplices of the same dimension and a **full order**, and returns a **shifted complex** using a **compound matrix**.
 - **Partial shift** uses the same compound matrix construction but selects columns using the **componentwise partial order on simplices** rather than the greedy order.

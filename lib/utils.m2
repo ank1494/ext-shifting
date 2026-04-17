@@ -280,6 +280,24 @@ doc ///
       findEdgeMissingTriangles({{0,1,2},{1,2,3}}, {0,2})
 ///
 
+-- Returns the link of a vertex in a 2-dimensional simplicial complex:
+-- all faces containing the vertex, with that vertex removed.
+vertexLink = (cplx, v) -> (
+    select(cplx, face -> member(v, face)) / (face -> delete(v, face))
+);
+
+doc ///
+  Key
+    vertexLink
+  Headline
+    compute the link of a vertex in a simplicial complex
+  Usage
+    vertexLink(cplx, v)
+  Description
+    Example
+      vertexLink({{1,2,3},{1,2,4}}, 1)
+///
+
 -- Returns edges that have exactly one vertex completing a missing triangle.
 findEdgesWithOneMissingTriangle = srfc -> (
 	edges := getEdges srfc;
@@ -296,6 +314,15 @@ doc ///
   Description
     Example
       findEdgesWithOneMissingTriangle {{0,1,2},{1,2,3}}
+///
+
+TEST ///
+  -- vertexLink: basic example from spec
+  assert(set vertexLink({{1,2,3},{1,2,4}}, 1) === set {{2,3},{2,4}})
+  -- vertexLink: vertex not present in any face returns empty list
+  assert(vertexLink({{1,2,3},{1,2,4}}, 5) == {})
+  -- vertexLink: vertex present in all faces
+  assert(set vertexLink({{1,2,3},{1,3,4},{1,2,4}}, 1) === set {{2,3},{3,4},{2,4}})
 ///
 
 TEST ///

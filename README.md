@@ -110,6 +110,7 @@ All functions below are available after `load "libs.m2"`.
 | `getBoundaryEdges surface` | Edges appearing in exactly one triangle (boundary of a surface with boundary) |
 | `kSkeleton(cplx, k)` | All k-dimensional faces of `cplx` |
 | `eulerCharSrfc surface` | Euler characteristic of a triangulated surface (triangles only) |
+| `vertexLink(cplx, v)` | Link of vertex `v` in a 2-dimensional complex: all faces containing `v`, with `v` removed |
 | `isConnected cplx` | Whether `cplx` is connected |
 | `is4prime complex` | Whether no two degree-4 vertices are adjacent |
 
