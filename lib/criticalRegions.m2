@@ -196,6 +196,19 @@ getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
 
         logInfo concatenate("regions count: ", toString regionsCount);
 
+        -- Ratio-2 deduplication: a split at base with ratio_0==2 and intermediate vertex u is
+        -- isomorphic to the split at u; keep only the one with the lower base index.
+        -- Exception: if either endpoint has degree 4 it won't appear in the other's handoff anyway.
+        deg := v -> #(select(srfc, t -> member(v, t)));
+        remainingSplits = select(remainingSplits, split -> (
+            data := split.splitData;
+            iv0 := (data.intermediateVertices)_0;
+            not ((data.ratio)_0 == 2
+                and data.base > iv0_0
+                and deg(data.base) > 4
+                and deg(iv0_0) > 4)
+        ));
+
         -- Filter exempt splits from the handoff only — they participated in critical region
         -- classification above but should not be passed to the next iteration.
         remainingSplits = select(remainingSplits, split -> not member({split.splitData.base, split.splitData.neighbors}, opts.exemptSplits));
@@ -252,6 +265,31 @@ TEST ///
     assert(#pair == 2);
     assert(instance(pair_1, VertexSplitData));
   );
+///
+
+TEST ///
+  -- Ratio-2 filter: for any irreducible triangulation, each undirected edge {v,u} with both
+  -- endpoints degree > 4 contributes exactly one discardable ratio-2 split (the one at the
+  -- higher-indexed base). If either endpoint has degree 4 it is exempt (caught as a critical region).
+  irredTori := value get "data/surface triangulations/irredTori.m2";
+  irredPp   := value get "data/surface triangulations/irredPp.m2";
+  irredKb   := value get "data/surface triangulations/irredKb.m2";
+  -- Restrict to ≤8 vertices so nonTrivialVertexSplits stays within the GC cap.
+  smallTris := select(join(irredTori, irredPp, irredKb), tri -> #(getVertices tri) <= 8);
+  tri := smallTris_(random #smallTris);
+  allSplits := nonTrivialVertexSplits tri;
+  deg := v -> #(select(tri, t -> member(v, t)));
+  isDiscardable := split -> (
+    data := split_1;
+    iv0 := (data.intermediateVertices)_0;
+    (data.ratio)_0 == 2 and data.base > iv0_0 and deg(data.base) > 4 and deg(iv0_0) > 4
+  );
+  filteredSplits := select(allSplits, split -> not isDiscardable split);
+  -- Expected: one discarded split per edge where both endpoints have degree > 4
+  edges := getEdges tri;
+  expectedDiscarded := #(select(edges, edge -> deg(edge_0) > 4 and deg(edge_1) > 4));
+  assert(#filteredSplits == #allSplits - expectedDiscarded)
+  assert(all(filteredSplits, split -> not isDiscardable split))
 ///
 
 -- Tests for getCritRegions on irredKb_25 (10-vertex Klein bottle) have been moved to

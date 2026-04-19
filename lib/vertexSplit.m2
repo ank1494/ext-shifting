@@ -2,7 +2,8 @@
 
 -- Typed record for the geometry of a non-trivial vertex split.
 -- Fields: base (the split vertex), neighbors (the two boundary neighbors that define the split arc),
---         ratio (sorted pair of triangle counts on each side of the split).
+--         ratio (sorted pair of triangle counts on each side of the split, smaller first),
+--         intermediateVertices (pair of intermediate vertex lists, smaller list first, mirroring ratio).
 VertexSplitData = new Type of HashTable
 
 doc ///
@@ -105,8 +106,16 @@ nonTrivialSplitsAtVertex0 = cplx -> (
 			newTriangle = append(delete(0, triangles_j), newVertex);
 			tempCplx = append(tempCplx, newTriangle);
 			toAdd := append(tempCplx, {0, endVertex, newVertex});
-			infoString := splitInfoString(startVertex, endVertex, triangleCount, trianglesLength - triangleCount);
-			infoList := splitInfoList(startVertex, endVertex, triangleCount, trianglesLength - triangleCount);
+			-- Intermediate vertices on each side (excluding base and the two boundary neighbors).
+			-- Arc side: positions i+1..j; complement side: positions j+2..(i-1) wrapping.
+			complLen := trianglesLength - triangleCount - 1;
+			arcIntermediates := apply(j - i, k -> vertexCycle_(i + 1 + k));
+			complementIntermediates := apply(complLen, k -> vertexCycle_((j + 2 + k) % trianglesLength));
+			intermediates := if triangleCount <= trianglesLength - triangleCount
+			    then {arcIntermediates, complementIntermediates}
+			    else {complementIntermediates, arcIntermediates};
+			infoString := splitInfoString(startVertex, endVertex, triangleCount, trianglesLength - triangleCount, intermediates);
+			infoList := splitInfoList(startVertex, endVertex, triangleCount, trianglesLength - triangleCount, intermediates);
 			splits = append(splits, toList {toAdd, infoList});
 		);
 	);
@@ -132,15 +141,17 @@ doc ///
 -- Returns a list of {resultComplex, VertexSplitData} pairs in original vertex coordinates.
 nonTrivialVertexSplits = complex -> (
 	currentSplitBase := 0;
-	splitInfoString = (startV, endV, side1, side2) -> (
+	splitInfoString = (startV, endV, side1, side2, intermediates) -> (
 		startV = if startV == currentSplitBase then 0 else startV;
 		endV = if endV == currentSplitBase then 0 else endV;
 		concatenate("base:", toString currentSplitBase, ", neighbors:", toString {startV, endV}, ", triangle ratio:", toString sort {side1, side2})
 	);
-	splitInfoList = (startV, endV, side1, side2) -> (
+	splitInfoList = (startV, endV, side1, side2, intermediates) -> (
 		startV = if startV == currentSplitBase then 0 else startV;
 		endV = if endV == currentSplitBase then 0 else endV;
-		new VertexSplitData from { base => currentSplitBase, neighbors => sort {startV, endV}, ratio => sort {side1, side2} }
+		-- Swap the base vertex label back in intermediate vertex lists (base was relabeled to 0).
+		intermediates = intermediates / (lst -> lst / (v -> if v == currentSplitBase then 0 else v));
+		new VertexSplitData from { base => currentSplitBase, neighbors => sort {startV, endV}, ratio => sort {side1, side2}, intermediateVertices => intermediates }
 	);
 	result := {};
 	vertices := getVertices complex;
@@ -250,6 +261,29 @@ doc ///
   Description
     Example
       contractCplx({{0,1,2},{0,2,3}}, {0,1})
+///
+
+TEST ///
+  -- Fan triangulation: hub vertex 1, rim 2..n. Vertex 1's cycle is [2,3,...,n].
+  n := 6;
+  fanTriangles := join(apply(toList(2..(n-1)), i -> {1,i,i+1}), {{1,2,n}});
+  splits := nonTrivialVertexSplits fanTriangles;
+  splitsAtV1 := select(splits, pair -> (pair_1).base == 1);
+  -- intermediateVertices sizes mirror ratio: iv_0 has ratio_0-1 elements, iv_1 has ratio_1-1
+  assert(all(splitsAtV1, pair -> (
+    iv := (pair_1).intermediateVertices;
+    r := (pair_1).ratio;
+    #iv == 2 and #(iv_0) == r_0 - 1 and #(iv_1) == r_1 - 1
+  )));
+  -- intermediateVertices cover exactly the non-neighbor rim vertices
+  assert(all(splitsAtV1, pair -> (
+    data := pair_1;
+    iv := data.intermediateVertices;
+    nbrs := set data.neighbors;
+    allIntermediates := set join(iv_0, iv_1);
+    rimVerts := set toList(2..n);
+    allIntermediates === rimVerts - nbrs
+  )))
 ///
 
 TEST ///

@@ -40,7 +40,7 @@ export {
     "isSameSideSplit", "getCritRegions",
     "exemptSplits",
     -- HashTable key symbols for VertexSplitData fields
-    "base", "neighbors", "ratio",
+    "base", "neighbors", "ratio", "intermediateVertices",
     -- HashTable key symbols for ShiftAnnotatedSplit fields
     "splitData", "preservesFinalEdge", "noVertex4",
     -- HashTable key symbols for CritRegionsResult fields
