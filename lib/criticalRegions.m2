@@ -276,7 +276,7 @@ TEST ///
   irredKb   := value get "data/surface triangulations/irredKb.m2";
   -- Restrict to ≤8 vertices so nonTrivialVertexSplits stays within the GC cap.
   smallTris := select(join(irredTori, irredPp, irredKb), tri -> #(getVertices tri) <= 8);
-  tri := smallTris_(random #smallTris);
+  tri := smallTris_(random (#smallTris));
   allSplits := nonTrivialVertexSplits tri;
   deg := v -> #(select(tri, t -> member(v, t)));
   isDiscardable := split -> (
