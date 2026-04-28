@@ -265,7 +265,7 @@ doc ///
 
 TEST ///
   -- Fan triangulation: hub vertex 1, rim 2..n. Vertex 1's cycle is [2,3,...,n].
-  n := 6;
+  n := random(6, 10);
   fanTriangles := join(apply(toList(2..(n-1)), i -> {1,i,i+1}), {{1,2,n}});
   splits := nonTrivialVertexSplits fanTriangles;
   splitsAtV1 := select(splits, pair -> (pair_1).base == 1);
