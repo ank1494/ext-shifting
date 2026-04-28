@@ -1,5 +1,8 @@
 # ext-shifting — Claude Instructions
 
+The Macaulay2 documentation is located here (for anything you might need to look up):
+https://macaulay2.com/doc/Macaulay2/share/doc/Macaulay2/Macaulay2Doc/html/index.html
+
 ## README
 
 Audience: mathematicians who want to use the Macaulay2 code directly (without the web app). They are comfortable with M2 but may not be software developers.
