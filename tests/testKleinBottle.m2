@@ -14,7 +14,7 @@ for i from 0 to 9 do (
     splits := result#1;
     assert(largest <= 12);
     if #splits == 0 then break;
-    current = splits_(random(#splits));
+    current = (splits_(random(#splits)))_0;
 );
 
 print "testKleinBottle: PASSED"
