@@ -147,7 +147,9 @@ getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
             separatingEdges := toList ((set regionEdges) - ((set boundaryEdges) + (set innerEdges)));
 
             eulerChar := eulerCharSrfc regionTriangles;
-            regionType := if eulerChar == 1 then "disk" else "mobius";
+            regionType := if eulerChar == 1 then "disk"
+                else if isCycle boundaryEdges then "mobius"
+                else "pinched disk";
             critRegStrs = critRegStrs + set {makeCritRegion(regionType, #boundary, #inners)};
 
             logInfo(concatenate("critical region- inner vertices: ", toString inners,
@@ -160,14 +162,16 @@ getCritRegions = {exemptSplits => {}} >> opts -> (srfc, finalEdge) -> (
             if not isConnected boundaryEdges then (
                 print "uh oh! region boundary is not connected";
                 logException(srfc, concatenate("critical region boundary is not connected, ", regionDetailStr));
-            ) else if not isCycle boundaryEdges then (
-                print "uh oh! region boundary is not a cycle";
-                logException(srfc, concatenate("critical region boundary is not a cycle, ", regionDetailStr));
+            ) else if (not isCycle boundaryEdges) and (not isPinchedDiskBdry boundaryEdges) then (
+                print "uh oh! region boundary is not a cycle nor a pinched disk's boundary";
+                logException(srfc, concatenate("critical region boundary is not a cycle nor a pinched disk's boundary, ", regionDetailStr));
             );
 
-            if 1 != eulerChar and 0 != eulerChar then (
-                print "uh oh! region is not a disk or a mobius strip!";
-                logException(srfc, concatenate("critical region is not a disk or mobius strip, ", regionDetailStr));
+            badEuler := 1 != eulerChar and 0 != eulerChar;
+            badBoundary := (not isCycle boundaryEdges) and (1 == eulerChar or (0 == eulerChar and not isPinchedDiskBdry boundaryEdges));
+            if badEuler or badBoundary then (
+                print "uh oh! region is not a disk or a mobius strip or a pinched disk!";
+                logException(srfc, concatenate("critical region is not a disk or mobius strip or a pinched disk, ", regionDetailStr));
             );
 
             if (4 * #inners < #innerEdges) then (
