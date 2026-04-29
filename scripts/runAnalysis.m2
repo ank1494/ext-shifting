@@ -36,13 +36,15 @@ printLive "libraries loaded";
 
 printLive "loading exempt splits...";
 kbExemptSplits := value get "data/surface triangulations/kbExemptSplits.m2";
+toriExemptSplits := value get "data/surface triangulations/toriExemptSplits.m2";
+exemptSplits := merge(kbExemptSplits, toriExemptSplits, (a, b) -> a | b);
 printLive "exempt splits loaded";
 
 if #triangulations > 0 then (
     printLive concatenate("begin calculation, ", toString(#triangulations), " triangulations to analyze");
     logFile << "begin calculation" << endl;
 
-    (foundCritRegions, splitsForNextCalc, largestNonPrefixTriangulation) := analyzeIteration(triangulations, exemptions => kbExemptSplits);
+    (foundCritRegions, splitsForNextCalc, largestNonPrefixTriangulation) := analyzeIteration(triangulations, exemptions => exemptSplits);
 
     --output summary
     critRegionsSummary = concatenate("the following critical regions were found: ", toString toList foundCritRegions);

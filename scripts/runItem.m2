@@ -16,6 +16,8 @@ try (load "scripts/initQueueEnv.m2"; envLoaded = true);
 if not envLoaded then (stderr << "error: failed to initialize queue environment" << endl; exit 2);
 
 kbExemptSplits := value get "data/surface triangulations/kbExemptSplits.m2";
+toriExemptSplits := value get "data/surface triangulations/toriExemptSplits.m2";
+exemptSplits := merge(kbExemptSplits, toriExemptSplits, (a, b) -> a | b);
 
 pendingDir := concatenate(outputDirPath, "/pending");
 doneDir := concatenate(outputDirPath, "/done");
@@ -26,5 +28,5 @@ if #pendingFiles == 0 then (
     exit 0;
 );
 
-processQueueItem(pendingDir, doneDir, exemptions => kbExemptSplits);
+processQueueItem(pendingDir, doneDir, exemptions => exemptSplits);
 exit 0;
