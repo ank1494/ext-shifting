@@ -1,5 +1,6 @@
 load "lib/graphs.m2"
 load "lib/utils.m2"
+load "lib/permutations.m2"
 load "lib/lex.m2"
 load "lib/randomMatrix.m2"
 load "lib/compound.m2"
