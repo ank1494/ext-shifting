@@ -21,6 +21,8 @@ try (load "scripts/initQueueEnv.m2"; envLoaded = true);
 if not envLoaded then (stderr << "error: failed to initialize queue environment" << endl; exit 2);
 
 kbExemptSplits := value get "data/surface triangulations/kbExemptSplits.m2";
+toriExemptSplits := value get "data/surface triangulations/toriExemptSplits.m2";
+exemptSplits := merge(kbExemptSplits, toriExemptSplits, (a, b) -> a | b);
 
 parseCapArg = argIdx -> (
     if #scriptCommandLine <= argIdx then null
@@ -39,6 +41,6 @@ runQueue(pendingDir, doneDir,
     itemCap        => capItem,
     maxVertexCount => capMaxVerts,
     timeoutSeconds => capTimeout,
-    exemptions     => kbExemptSplits);
+    exemptions     => exemptSplits);
 
 exit 0;
