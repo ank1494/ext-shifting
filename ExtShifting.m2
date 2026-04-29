@@ -11,6 +11,9 @@ newPackage("ExtShifting",
 pkgSrcDir := currentFileDirectory;
 
 export {
+    -- permutations.m2
+    "applyPermutation", "isAutomorphism", "groupClosure",
+    "applyPermutationToSplit", "isExemptionValid",
     -- utils.m2
     "allNonegInts", "incrementVertices", "swap", "swapTable", "kSkeleton",
     "getEdges", "getVertices", "getBoundaryEdges", "eulerCharSrfc",
@@ -77,6 +80,7 @@ doc = s -> null;
 
 needs (pkgSrcDir | "lib/graphs.m2")
 needs (pkgSrcDir | "lib/utils.m2")
+needs (pkgSrcDir | "lib/permutations.m2")
 needs (pkgSrcDir | "lib/lex.m2")
 needs (pkgSrcDir | "lib/randomMatrix.m2")
 needs (pkgSrcDir | "lib/compound.m2")
