@@ -120,6 +120,18 @@ All functions below are available after `load "libs.m2"`.
 |---|---|
 | `nonTrivSplits complex` | All non-trivial vertex splits of a triangulation; returns a list of `{splitComplex, splitData}` pairs |
 
+### Permutation algebra
+
+Used for automorphism verification and exemption checking. Permutations are index-based lists: position `i` holds the image of vertex `i`.
+
+| Function | Description |
+|---|---|
+| `applyPermutation(perm, complex)` | Relabels every vertex in every face by `perm`; returns the canonically sorted complex |
+| `isAutomorphism(perm, complex)` | True iff `applyPermutation(perm, complex) === canonical complex` |
+| `groupClosure generators` | BFS expansion: returns all group elements reachable from `generators`, including the identity |
+| `applyPermutationToSplit(perm, split)` | Maps `{base, {n1,n2}}` to `{perm#base, sort {perm#n1, perm#n2}}` |
+| `isExemptionValid(complex, generators, exemptSplits, allSplits)` | For each exempt split, checks that at least one orbit partner is non-exempt. Returns violating splits — empty means valid. |
+
 ### Analysis
 
 | Function | Description |
@@ -129,8 +141,23 @@ All functions below are available after `load "libs.m2"`.
 | `analyzeIteration triangulations` | Pure mathematical core of one analysis iteration: takes a list of triangulations, returns `(foundCritRegions, splitsForNextCalc, largestNonPrefixVertices)` |
 | `analyzeIteration(triangulations, exemptions => table)` | Same, but `table` is a `HashTable` mapping triangulations to their exempt split lists (see `kbExemptSplits.m2`) |
 
-## Klein bottle split exemptions
+## Automorphism data
 
-Three vertex splits on `irredKb_25` (a 10-vertex Klein bottle formed by connected sum of two irreducible RP² triangulations at vertices 0, 1, 2) are topologically equivalent to a trivial split on one RP² component before gluing. The `nonTrivialVertexSplits` filter cannot detect this because the connected sum hides the triviality.
+Automorphism group generators for each analysed triangulation are stored in:
 
-The file `data/surface triangulations/kbExemptSplits.m2` defines a `HashTable` mapping `irredKb_25` to these three exempt splits (`{0,{1,2}}`, `{1,{0,2}}`, `{2,{0,1}}`). The analysis script (`runAnalysis.m2`) loads this file and passes it to `analyzeIteration`, suppressing the false-positive exceptions.
+- `data/surface triangulations/kbAutomorphisms.m2` — Klein bottle triangulations (`irredKb_0`–`irredKb_4`, `irredKb_25`)
+- `data/surface triangulations/toriAutomorphisms.m2` — torus triangulations (`irredTori_0`–`irredTori_4`)
+
+Each file is a `HashTable` mapping a triangulation to a list of generator permutations (index-based: position `i` holds the image of vertex `i`). Cycle-notation comments above each generator aid human verification. The full automorphism group is computed at analysis time by `groupClosure`.
+
+Automorphism verification tests are in `tests/automorphisms-kb.m2` and `tests/automorphisms-tori.m2`. For each triangulation they check: (1) group order matches the expected value; (2) every group element is an automorphism; (3) the exemption table has no violations (`isExemptionValid` returns empty); (4) every non-exempt split at an automorphism-covered base is the lex-minimum of its orbit.
+
+## Split exemptions
+
+The exemption tables in `data/surface triangulations/kbExemptSplits.m2` and `toriExemptSplits.m2` list non-trivial vertex splits that are excluded from the critical region analysis. Two kinds of exemption exist:
+
+**Automorphism-based:** Splits in the same automorphism orbit as a retained lex-minimum representative are omitted to avoid redundant computation. This accounts for the vast majority of entries in both files. For example, `irredTori_0` has a transitive automorphism group of order 42, so only 2 splits need to be computed rather than all 63.
+
+**Topology-based (irredKb_25 only):** Three splits on the 10-vertex Klein bottle `irredKb_25` — `{0,{1,2}}`, `{1,{0,2}}`, `{2,{0,1}}` — are topologically equivalent to a trivial split on one RP² component of the connected sum. The `nonTrivialVertexSplits` filter cannot detect this because the connected sum hides the triviality, causing false-positive "bad split" exceptions. `{1,{0,2}}` and `{2,{0,1}}` are also covered by automorphism exemptions; `{0,{1,2}}` is the automorphism representative but is still a false positive, so it is added to the table explicitly.
+
+The analysis script loads the appropriate exemptions file and passes it to `analyzeIteration` to suppress these splits before shift computation.
